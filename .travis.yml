@@ -1,0 +1,13 @@
+language: cpp
+os: linux
+compiler: gcc
+sudo: required
+dist: xenial
+
+before_install:
+    - sudo apt-get -qq update
+    - sudo apt-get install -y cmake
+script:
+    - mkdir build && cd build
+    - cmake ..
+    - make && make build-tests && make test
