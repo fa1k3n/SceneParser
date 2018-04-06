@@ -14,12 +14,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 add_subdirectory("test")
 
 set(SRC
-  src/parser.cpp
+  src/SceneParser.cpp
+  src/Tokenizer.cpp
 )
 
 set(INC
 )
 
-include_directories(include)
+include_directories("include")
 
 add_library(scparser ${SRC} ${INC})

@@ -19,11 +19,13 @@ include_directories(${GTestSrc} ${GTestSrc}/include ${GMockSrc} ${GMockSrc}/incl
 cmake_policy(SET CMP0037 OLD)
 
 set(GTEST 
-	${GTestSrc}/src/gtest-all.cc
+    ${GTestSrc}/src/gtest-all.cc
     ${GMockSrc}/src/gmock-all.cc
 	)
 
 set(TESTCASES
+    tst_parser.cpp
+    tst_tokenizer.cpp
     )
 
 add_executable(build-tests EXCLUDE_FROM_ALL main.cpp ${TESTCASES} ${GTEST})
