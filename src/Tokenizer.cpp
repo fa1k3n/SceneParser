@@ -29,7 +29,7 @@ CTokenizer::CTokenizer(std::istream& tokstream) {
          tokstream >> word;
          std::transform(word.begin(), word.end(), word.begin(), ::tolower);
          
-         m_words.push_back(word);
+         m_lexemes.push_back(word);
      }
  }
  
@@ -54,10 +54,10 @@ bool CTokenizer::skipComment(std::istream& tokstream) {
 }
 
 bool CTokenizer::getNextToken(std::unique_ptr<SToken>* tok) {
-    if(m_words.size() == 0)
+    if(m_lexemes.size() == 0)
         return false;
     
-    auto value = m_words.front(); m_words.pop_front();
+    auto value = m_lexemes.front(); m_lexemes.pop_front();
     
     // Try to convert to double
     try {
@@ -66,12 +66,10 @@ bool CTokenizer::getNextToken(std::unique_ptr<SToken>* tok) {
         return true;
     } catch (std::invalid_argument& ) {}
     
-    if(value == "{")
-        *tok =  std::unique_ptr<SBlockToken>(new SBlockToken(SBlockToken::START));
-    else if (value == "}")
-        *tok =  std::unique_ptr<SBlockToken>(new SBlockToken(SBlockToken::END));
+    if(value == "{" || value == "}")
+        *tok =  std::unique_ptr<SSeparatorToken>(new SSeparatorToken);
     else
-        *tok =  std::unique_ptr<SIdToken>(new SIdToken(value));
+        *tok =  std::unique_ptr<SKeywordToken>(new SKeywordToken(value));
     return true;
 }
 

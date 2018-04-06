@@ -11,29 +11,22 @@
 struct SToken {
     enum TokenType {
         NONE,  // Uninitialized token
-        ID, 
+        KEYWORD, 
         CONST,
-        BLOCK
+        SEPARATOR
     };
     SToken(TokenType tt = NONE) : type(tt) {}
     TokenType type;
 };
 
-struct SIdToken : public SToken {
-    SIdToken(std::string value) : SToken(SToken::ID),  str(value) {};
+struct SKeywordToken : public SToken {
+    SKeywordToken(std::string value) : SToken(SToken::KEYWORD),  str(value) {};
     std::string str;
 };
 
-struct SBlockToken : public SToken {
-    enum BlockType {
-        START,
-        END
-    };
-    SBlockToken(BlockType bt) : SToken(SToken::BLOCK), type(bt) {};
-    BlockType type;
+struct SSeparatorToken : public SToken {
+    SSeparatorToken() : SToken(SToken::SEPARATOR) {};
 };
-
-
 
 struct SConstToken : public SToken {
     SConstToken(double v) : SToken(SToken::CONST) , val(v) {}
@@ -49,7 +42,7 @@ public:
 private:
     void getWordsFromStream(std::istream& tokstream);
     bool skipComment(std::istream& tokstream);
-    std::list<std::string> m_words;
+    std::list<std::string> m_lexemes;
 };
 
 #endif /* CTOKENIZER_HPP */

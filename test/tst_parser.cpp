@@ -10,7 +10,7 @@ using namespace std;
 
 class TestSceneGenerator : public ISceneGenerator {
 public:
-    MOCK_METHOD0(Camera, bool());
+    MOCK_METHOD1(Camera, bool(CCamera&));
 };
 
 TEST(SceneParser, testConstructor) {
@@ -22,10 +22,12 @@ TEST(SceneParser, testConstructor) {
 TEST(SceneParserCamera, testBasicCameraParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    EXPECT_CALL(generator, Camera()).WillRepeatedly(::testing::Return(true));
-    istringstream scene("Camera { Type Basic\nName first_camera}");
+    CCamera cam(CCamera::BASIC,"");
+    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::SaveArg<0>(&cam)).WillRepeatedly(::testing::Return(true));
+    istringstream scene("Camera { Type Basic Name first_camera }");
     bool success = parser.ParseScene(scene);
     ASSERT_TRUE(success);
+    ASSERT_STREQ("first_camera", cam.name.c_str());
 }
 
 /*
