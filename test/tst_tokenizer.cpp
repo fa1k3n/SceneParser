@@ -8,38 +8,87 @@ using namespace std;
 TEST(Tokenizer, basicId) { 
     CTokenizer tokenizer("foo bar");
     const char* exp[] = {"foo", "bar"};
-    SToken* tok;
+    std::unique_ptr<SToken> tok;
     int i = 0;
     while(tokenizer.getNextToken(&tok)) {
         ASSERT_TRUE(tok->type == SToken::ID);
-        auto idt = static_cast<SIdToken*>(tok);
+        auto idt = static_cast<SIdToken*>(tok.get());
         ASSERT_STREQ(exp[i++], idt->str.c_str());
-        delete tok;
     }
 }
 
 TEST(Tokenizer, basicBlock) {
-    CTokenizer tokenizer("{ }");
-    SToken* tok;
+    CTokenizer tokenizer("   { }");
+    std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-    ASSERT_TRUE(tok->type == SToken::SBLOCK);
-    delete tok;
-     tokenizer.getNextToken(&tok);
-    ASSERT_TRUE(tok->type == SToken::EBLOCK);
-    delete tok;
+    ASSERT_TRUE(tok->type == SToken::BLOCK);
+    auto bt = static_cast<SBlockToken*>(tok.get());
+    ASSERT_TRUE(bt->type == SBlockToken::START);
+    tokenizer.getNextToken(&tok);
+    ASSERT_TRUE(tok->type == SToken::BLOCK);
+    bt = static_cast<SBlockToken*>(tok.get());
+    ASSERT_TRUE(bt->type == SBlockToken::END);
 }
 
 TEST(Tokenizer, basicConst) {
     CTokenizer tokenizer("2 .5 0.7");
     double exp[] = {2.0, 0.5, 0.7};
-    SToken* tok;
-    SConstToken* idt;
+    std::unique_ptr<SToken> tok;
     int i = 0;
     while(tokenizer.getNextToken(&tok)) {
         ASSERT_TRUE(tok->type == SToken::CONST);
-        idt = static_cast<SConstToken*>(tok);
+        auto idt = static_cast<SConstToken*>(tok.get());
         ASSERT_EQ(exp[i++], idt->val);
-        delete tok;
     }
 }
 
+TEST(Tokenizer, basicStream) {
+    std::string str = "baz";
+    std::istringstream tokstream(str);
+    CTokenizer t(tokstream);
+    std::unique_ptr<SToken> tok;
+    t.getNextToken(&tok);
+    ASSERT_TRUE(tok->type == SToken::ID);
+    auto idt = static_cast<SIdToken*>(tok.get());
+    ASSERT_STREQ("baz", idt->str.c_str());
+}
+
+TEST(Tokenizer, commentsAreSkipped) {
+    {
+        CTokenizer toks("/* everything in here is a comment */  ");
+        std::unique_ptr<SToken> tok;
+        ASSERT_FALSE(toks.getNextToken(&tok));
+    }
+    
+    {
+        CTokenizer toks("// This is a row comment\nfoo");
+        std::unique_ptr<SToken> tok;
+        ASSERT_TRUE(toks.getNextToken(&tok));
+         auto idt = static_cast<SIdToken*>(tok.get());
+         ASSERT_STREQ("foo", idt->str.c_str());
+    }  
+}
+
+TEST(Tokenizer, allValuesAreSmall) { 
+    CTokenizer tokenizer("FoO BAR");
+    const char* exp[] = {"foo", "bar"};
+    std::unique_ptr<SToken> tok;
+    int i = 0;
+    while(tokenizer.getNextToken(&tok)) {
+        ASSERT_TRUE(tok->type == SToken::ID);
+        auto idt = static_cast<SIdToken*>(tok.get());
+        ASSERT_STREQ(exp[i++], idt->str.c_str());
+    }
+}
+
+TEST(Tokenizer, tabsAreHandeled) { 
+    CTokenizer tokenizer("foo           bar");
+    const char* exp[] = {"foo", "bar"};
+    std::unique_ptr<SToken> tok;
+    int i = 0;
+    while(tokenizer.getNextToken(&tok)) {
+        ASSERT_TRUE(tok->type == SToken::ID);
+        auto idt = static_cast<SIdToken*>(tok.get());
+        ASSERT_STREQ(exp[i++], idt->str.c_str());
+    }
+}

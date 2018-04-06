@@ -3,14 +3,17 @@
 
 #include <istream>
 #include <list>
+#include <memory>
+#include <sstream>
+#include <iterator>
+
 
 struct SToken {
     enum TokenType {
         NONE,  // Uninitialized token
         ID, 
         CONST,
-        SBLOCK,
-        EBLOCK
+        BLOCK
     };
     SToken(TokenType tt = NONE) : type(tt) {}
     TokenType type;
@@ -21,13 +24,16 @@ struct SIdToken : public SToken {
     std::string str;
 };
 
-struct SStartBlockToken : public SToken {
-    SStartBlockToken() : SToken(SToken::SBLOCK) {};
+struct SBlockToken : public SToken {
+    enum BlockType {
+        START,
+        END
+    };
+    SBlockToken(BlockType bt) : SToken(SToken::BLOCK), type(bt) {};
+    BlockType type;
 };
 
-struct SEndBlockToken : public SToken {
-    SEndBlockToken() : SToken(SToken::EBLOCK) {};
-};
+
 
 struct SConstToken : public SToken {
     SConstToken(double v) : SToken(SToken::CONST) , val(v) {}
@@ -36,11 +42,13 @@ struct SConstToken : public SToken {
 
 class CTokenizer {
 public:
-    CTokenizer(std::string const &tokens);
+    CTokenizer(std::string const &tokstr);
     CTokenizer(std::istream& tokstream);
     virtual ~CTokenizer();
-    bool getNextToken(SToken** tok);
+    bool getNextToken(std::unique_ptr<SToken>* tok);
 private:
+    void getWordsFromStream(std::istream& tokstream);
+    bool skipComment(std::istream& tokstream);
     std::list<std::string> m_words;
 };
 
