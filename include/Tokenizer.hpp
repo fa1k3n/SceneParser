@@ -40,7 +40,7 @@ public:
     virtual ~CTokenizer();
     bool getNextToken(std::unique_ptr<SToken>* tok);
 private:
-    void getWordsFromStream(std::istream& tokstream);
+    void getLexemesFromStream(std::istream& tokstream);
     bool skipComment(std::istream& tokstream);
     std::list<std::string> m_lexemes;
 };
