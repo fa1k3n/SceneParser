@@ -34,7 +34,8 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
                 {
                     auto keyw = static_cast<SKeywordToken*>(tok.get());
                     auto value = getKeywordToken(tokenizer);
-                    map.add(SKVPair{keyw->str, value->str});
+                    //map[keyw->str] = value->str;
+                    map.add(SProperty{keyw->str, value->str});
                 }
                  break;
                     
@@ -50,9 +51,9 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer) {
     
     CPropertyMap properties;
     readBlock(tokenizer, properties); 
-    if(properties.first().key != "type") return false; // First property must by type
-    auto type = properties.get("type") == "basic" ? CCamera::BASIC : CCamera::ADVANCED;
-    CCamera cam(type,  properties.get("name"));
+    if(properties.first() != "type") return false; // First property must by type
+    auto type = properties["type"] == "basic" ? CCamera::BASIC : CCamera::ADVANCED;
+    CCamera cam(type,  properties["name"]);
     
     m_generator.Camera(cam);
     return true;
