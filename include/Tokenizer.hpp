@@ -41,7 +41,7 @@ public:
     bool getNextToken(std::unique_ptr<SToken>* tok);
     SToken::TokenType peekNextToken();
 private:
-    void getWordsFromStream(std::istream& tokstream);
+    void getLexemesFromStream(std::istream& tokstream);
     bool skipComment(std::istream& tokstream);
     bool tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok);
 

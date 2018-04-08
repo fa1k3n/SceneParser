@@ -3,14 +3,14 @@
 
 CTokenizer::CTokenizer(std::string const &tokstr) {
     std::istringstream buffer(tokstr);
-    getWordsFromStream(buffer);
+    getLexemesFromStream(buffer);
 }
 
 CTokenizer::CTokenizer(std::istream& tokstream) {
-    getWordsFromStream(tokstream);
+    getLexemesFromStream(tokstream);
 }
 
- void CTokenizer::getWordsFromStream(std::istream& tokstream) {
+ void CTokenizer::getLexemesFromStream(std::istream& tokstream) {
      char c;
      std::string str;
      while(tokstream.get(c)) {
