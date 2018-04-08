@@ -7,7 +7,7 @@
 #include <vector>
 
 struct SProperty {
-    std::string key;
+    std::string name;
     std::string value;
 };
 
@@ -16,11 +16,11 @@ public:
     void add(SProperty p) { m_pairs.push_back(p); }
     std::string& get(std::string name) {
         for(int i = 0; i < m_pairs.size(); i++) {
-            if(m_pairs[i].key == name) return m_pairs[i].value;
+            if(m_pairs[i].name == name) return m_pairs[i].value;
         }
     }
     
-    std::string first() { return m_pairs.front().key; }
+    std::string first() { return m_pairs.front().name; }
     
     std::string& operator[](std::string name) { return get(name); }
     private:
@@ -37,6 +37,8 @@ private:
     SKeywordToken* getKeywordToken(CTokenizer& tokenizer);
     SSeparatorToken* getSeparatorToken(CTokenizer& tokenizer);
     bool readBlock(CTokenizer& tokenizer, CPropertyMap& pairs);
+    bool readProperty(CTokenizer& tokenizer, SProperty& propl);
+    bool readConstArray(CTokenizer& tokenizer, std::vector<double>& vals);
     ISceneGenerator& m_generator;
 };
 

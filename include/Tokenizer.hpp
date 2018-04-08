@@ -39,9 +39,12 @@ public:
     CTokenizer(std::istream& tokstream);
     virtual ~CTokenizer();
     bool getNextToken(std::unique_ptr<SToken>* tok);
+    SToken::TokenType peekNextToken();
 private:
     void getWordsFromStream(std::istream& tokstream);
     bool skipComment(std::istream& tokstream);
+    bool tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok);
+
     std::list<std::string> m_lexemes;
 };
 

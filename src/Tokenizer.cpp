@@ -58,20 +58,32 @@ bool CTokenizer::getNextToken(std::unique_ptr<SToken>* tok) {
         return false;
     
     auto value = m_lexemes.front(); m_lexemes.pop_front();
-    
+    return tokenizeLexeme(value, tok);
+}
+
+ SToken::TokenType CTokenizer::peekNextToken() {
+    auto value = m_lexemes.front(); 
+    std::unique_ptr<SToken> tok;
+    if(!tokenizeLexeme(value, &tok)) return SToken::TokenType::NONE;
+    return tok.get()->type;
+}
+
+bool CTokenizer::tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok) {
     // Try to convert to double
     try {
-        double val = std::stod(value);
+        double val = std::stod(lexeme);
         *tok = std::unique_ptr<SConstToken>(new SConstToken(val));
         return true;
     } catch (std::invalid_argument& ) {}
     
-    if(value == "{" || value == "}")
+    if(lexeme == "{" || lexeme == "}")
         *tok =  std::unique_ptr<SSeparatorToken>(new SSeparatorToken);
     else
-        *tok =  std::unique_ptr<SKeywordToken>(new SKeywordToken(value));
+        *tok =  std::unique_ptr<SKeywordToken>(new SKeywordToken(lexeme));
     return true;
 }
+
+
 
     
 CTokenizer::~CTokenizer() {

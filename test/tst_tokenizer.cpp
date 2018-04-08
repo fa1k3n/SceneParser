@@ -88,3 +88,9 @@ TEST(Tokenizer, tabsAreHandeled) {
         ASSERT_STREQ(exp[i++], idt->str.c_str());
     }
 }
+
+TEST(Tokenizer, testPeek) {
+    CTokenizer tokenizer("foo");
+    ASSERT_EQ(SToken::KEYWORD, tokenizer.peekNextToken());
+    ASSERT_EQ(SToken::KEYWORD, tokenizer.peekNextToken());
+}

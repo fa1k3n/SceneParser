@@ -23,28 +23,59 @@ bool CSceneParser::ParseScene(std::istream& scene) {
 bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
         getSeparatorToken(tokenizer);  // First block separator
         
+        SToken::TokenType type;
         std::unique_ptr<SToken> tok;
-        while(tokenizer.getNextToken(&tok)) {
-            switch(tok->type) {
+
+        while((type = tokenizer.peekNextToken()) != SToken::NONE)  {
+
+            switch(type) {
                 case SToken::SEPARATOR:
+                    tokenizer.getNextToken(&tok);
                     return true;     // Block closed 
                     break;
                     
                 case SToken::KEYWORD:
                 {
-                    auto keyw = static_cast<SKeywordToken*>(tok.get());
-                    auto value = getKeywordToken(tokenizer);
-                    //map[keyw->str] = value->str;
-                    map.add(SProperty{keyw->str, value->str});
+                    SProperty prop;
+                    readProperty(tokenizer, prop);
+                    map.add(prop);
                 }
                  break;
-                    
+                      
                 default:
                     return false; // malformed code block
             }         
         }
  
         return false; // Block never closed
+}
+
+bool CSceneParser::readProperty(CTokenizer& tokenizer, SProperty& val) {
+     std::unique_ptr<SToken> tok;
+
+    tokenizer.getNextToken(&tok);
+    val.name = static_cast<SKeywordToken*>(tok.get())->str;
+    auto nextTok = tokenizer.peekNextToken() ;
+    if(nextTok == SToken::KEYWORD) {
+        val.value = getKeywordToken(tokenizer)->str;
+        //map[keyw->str] = value->str;
+       
+    } else if (nextTok == SToken::CONST) {
+        // Read all consts
+        while( tokenizer.peekNextToken() == SToken::CONST)
+             tokenizer.getNextToken(&tok);
+
+    }
+}
+
+
+bool CSceneParser::readConstArray(CTokenizer& tokenizer, std::vector<double>& vals) {
+    std::unique_ptr<SToken> tok;
+    for(int i = 0; i < 3; i ++) {
+        tokenizer.getNextToken(&tok);
+        vals.push_back(static_cast<SConstToken*>(tok.get())->val);
+    }
+    return true;
 }
 
 bool CSceneParser::parseCamera(CTokenizer& tokenizer) {
