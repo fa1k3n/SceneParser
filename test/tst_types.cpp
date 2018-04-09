@@ -59,10 +59,11 @@ TEST(SPropertyValueTest, basicPropertyMap) {
 
 TEST(SPropertyValueTest, doubleList) {
     SPropertyValue var;
-    var << 3 << 4;
+    var << 3 << 4 << 0.3;
     ASSERT_EQ(SPropertyValue::DOUBLE_LIST, var.type);
     ASSERT_EQ(3, var.toDouble(0));
     ASSERT_EQ(4, var.toDouble(1));
+     ASSERT_EQ(0.3, var.toDouble(2));
 }
 
 TEST(SPropertyValueTest, stringList) {
@@ -82,3 +83,9 @@ TEST(SPropertyValueTest, propertyMapList) {
     ASSERT_EQ(&m2, &var.toMap(1));
 }
 
+TEST(CPropertyMapTest, hasProperty) {
+    CPropertyMap map;
+    map["bar"] << 4;
+    ASSERT_FALSE(map.hasProperty("foo"));
+    ASSERT_TRUE(map.hasProperty("bar"));
+}

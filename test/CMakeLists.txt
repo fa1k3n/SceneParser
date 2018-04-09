@@ -1,5 +1,7 @@
 find_package(Threads REQUIRED)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 if ($ENV{GOOGLETEST_DIR})
     SET(GOOGLETEST_DIR $ENV{GOOGLETEST_DIR})
 else ()

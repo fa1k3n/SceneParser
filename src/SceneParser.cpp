@@ -13,7 +13,7 @@ bool CSceneParser::ParseScene(std::istream& scene) {
     if(tok->type == SToken::KEYWORD) {
         auto idt = static_cast<SKeywordToken*>(tok.get());
         if(idt->str == "camera") {
-            parseCamera(tokenizer);
+            if(!parseCamera(tokenizer)) return false;
         }
     }
 
@@ -51,8 +51,7 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
         return false; // Block never closed
 }
 
-bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val) {
-;        
+bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val) { 
     std::unique_ptr<SToken> tok;
     auto nextTok = tokenizer.peekNextToken() ;
     if(nextTok == SToken::ID) {
@@ -60,9 +59,10 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
         val = static_cast<SIdToken*>(tok.get())->str;       
     } else if (nextTok == SToken::CONST) {
         // Read all consts
-        while( tokenizer.peekNextToken() == SToken::CONST)
-             tokenizer.getNextToken(&tok);
-
+        while( tokenizer.peekNextToken() == SToken::CONST) {
+            tokenizer.getNextToken(&tok);
+             val << static_cast<SConstToken*>(tok.get())->val;  
+        }
     } 
     return true;
 }
@@ -82,10 +82,23 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer) {
     readBlock(tokenizer, properties); 
 
     if(properties.first() != "type") return false; // First property must by type
+    if(!properties.hasProperty("name")) return false;  // Missing required field name
 
     auto type = properties["type"].toStr() == "basic" ? CCamera::BASIC : CCamera::ADVANCED;
     CCamera cam(type,  properties["name"].toStr());
     
+    if(properties.hasProperty("eye_point")) 
+        cam.setEyePoint(properties["eye_point"].toDoubleList());
+    
+    if(properties.hasProperty("look_point")) 
+        cam.setLookPoint(properties["look_point"].toDoubleList());
+    
+    if(properties.hasProperty("up")) 
+        cam.setUp(properties["up"].toDoubleList());
+    
+    if(properties.hasProperty("distance_image_plane")) 
+        cam.setDistanceImagePlane(properties["distance_image_plane"].toDouble());
+
     m_generator.Camera(cam);
     return true;
 }

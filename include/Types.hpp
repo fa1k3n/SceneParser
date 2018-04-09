@@ -67,7 +67,7 @@ struct SPropertyValue {
      SPropertyValue& operator<<(double v) {
         if(type == NONE) type = DOUBLE;
        else if (type == DOUBLE) type = DOUBLE_LIST;
-       else throw ImplicitTypeConversion("Trying to assign double to non-double property");
+       else if(type != DOUBLE_LIST) throw ImplicitTypeConversion("Trying to assign double to non-double property");
        m_double.push_back(v);
        return *this;
      }
@@ -75,7 +75,7 @@ struct SPropertyValue {
       SPropertyValue& operator<<(std::string s) {
         if(type == NONE) type = STRING;
        else if (type == STRING) type = STRING_LIST;
-       else throw ImplicitTypeConversion("Trying to assign string to non-string property");
+       else if (type != STRING_LIST) throw ImplicitTypeConversion("Trying to assign string to non-string property");
        m_str.push_back(s);
        return *this;
     }
@@ -83,7 +83,7 @@ struct SPropertyValue {
     SPropertyValue& operator<<(CPropertyMap& s) {
         if(type == NONE) type = MAP;
        else if (type == MAP) type = MAP_LIST;
-       else throw ImplicitTypeConversion("Trying to assign property map to non-property map property");
+       else if(type != MAP_LIST) throw ImplicitTypeConversion("Trying to assign property map to non-property map property");
        m_map.push_back(&s);
        return *this;
     }
@@ -94,10 +94,22 @@ struct SPropertyValue {
         return m_double[index]; 
     }
     
+    std::vector<double> toDoubleList() {
+        if(type != DOUBLE_LIST)
+            throw ImplicitTypeConversion("Trying to read a double list from non-double list property" );
+        return m_double;
+    }
+    
     std::string& toStr(int index = 0) { 
           if(type != STRING && type != STRING_LIST)
             throw ImplicitTypeConversion("Trying to read a string from non-string property" );
         return m_str[index]; 
+    }
+    
+    std::vector<std::string> toStrList() {
+        if(type != STRING_LIST)
+            throw ImplicitTypeConversion("Trying to read a string list from non-string list property" );
+        return m_str;
     }
     
     CPropertyMap& toMap(int index = 0) {
@@ -123,6 +135,9 @@ public:
         }
         return m_props[name]; 
     }
+    
+    bool hasProperty(std::string name) { return m_props.find(name) != m_props.end(); }
+    
     private:
         std::map<std::string, SPropertyValue> m_props;
         std::string m_firstKey;

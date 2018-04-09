@@ -19,30 +19,61 @@ TEST(SceneParser, testConstructor) {
     ASSERT_TRUE(true);
 }
 
-TEST(SceneParserCamera, testBasicCameraParsing) {
+bool equal(const std::vector<double>& a, const std::vector<double>& b) {
+    if(a.size() != b.size()) return false;
+    for(unsigned int i = 0; i <a.size(); i++)
+        if(a[i] != b[i]) return false;
+    return true;
+}
+
+TEST(SceneParserCamera, defaultCameraParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     CCamera cam(CCamera::BASIC,"");
     EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::SaveArg<0>(&cam)).WillRepeatedly(::testing::Return(true));
     istringstream scene( "Camera {\n"
     "    Type Basic\n"
-    "    Eye_point 0.5 0.5 0.5\n"
     "    Name first_camera\n"
+    "}");
+    bool success = parser.ParseScene(scene);
+    ASSERT_TRUE(success);
+    
+    // Check defaults
+    ASSERT_TRUE(equal(cam.eyePoint, {0, 0, -1}));
+    ASSERT_TRUE(equal(cam.lookPoint, {0, 0, 0}));
+    ASSERT_TRUE(equal(cam.up, {0, 1, 0}));
+    ASSERT_EQ(3, cam.distanceImagePlane);
+}
+TEST(SceneParserCamera, testCameraParsing) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    CCamera cam(CCamera::BASIC,"");
+    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::SaveArg<0>(&cam)).WillRepeatedly(::testing::Return(true));
+    istringstream scene( "Camera {\n"
+    "    Type Basic\n"
+    "    Name first_camera\n"
+    "    Eye_point 0.2 0.3 0.6 \n"
+    "    Look_point .3 0.1 -0.7 \n"
+    "    Up 0.2 -0.1 0 \n"
+    "    Distance_image_plane 7 \n"
     " }\n");
   
     bool success = parser.ParseScene(scene);
     ASSERT_TRUE(success);    
     ASSERT_EQ(CCamera::BASIC, cam.type);
     ASSERT_STREQ("first_camera", cam.name.c_str());
+    
+    ASSERT_TRUE(equal(cam.eyePoint, {0.2, 0.3, 0.6}));
+    ASSERT_TRUE(equal(cam.lookPoint, {0.3, 0.1, -0.7}));
+    ASSERT_TRUE(equal(cam.up, {0.2, -0.1, 0}));
+    ASSERT_EQ(7, cam.distanceImagePlane);
 }
 
-/*
 TEST(SceneParserCamera, testBasicCameraParsingMissingRequiredKey) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    EXPECT_CALL(generator, Camera()).WillRepeatedly(::testing::Return(true));
+    CCamera cam(CCamera::BASIC,"");
     istringstream scene("Camera { Type Basic }");
     bool success = parser.ParseScene(scene);
     ASSERT_FALSE(success);
 }
-*/
