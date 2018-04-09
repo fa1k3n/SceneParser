@@ -38,10 +38,40 @@ public:
     double distanceImagePlane         = 3;
 };
 
+class CBasicCamera : public CCamera {
+public:
+    CBasicCamera(std::string n) : CCamera(CameraType::BASIC, n) {}
+   
+     CCamera& setFov(double f) {
+        fov = f;
+        return *this;
+    }
+      
+     CCamera& setAspectRatio(double ar) {
+        aspectRatio = ar;
+        return *this;
+    }
+      
+    double fov = 90;
+    double aspectRatio = 4/3;
+};
+
+class CMaterial {
+public:
+    enum MaterialType {
+        BASIC
+    };
+    CMaterial(MaterialType t, std::string n) : type(t), name(n) {}
+    
+    MaterialType type;
+    std::string name;
+};
+
 class ISceneGenerator {
 public:
     virtual ~ISceneGenerator() {}
     virtual bool Camera(CCamera& cam) = 0;
+    virtual bool Material(CMaterial& mat) = 0;
 private:
 
 };

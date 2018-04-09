@@ -10,7 +10,8 @@ using namespace std;
 
 class TestSceneGenerator : public ISceneGenerator {
 public:
-    MOCK_METHOD1(Camera, bool(CCamera&));
+    MOCK_METHOD1(Camera, bool(CCamera&));   
+    MOCK_METHOD1(Material, bool(CMaterial&));
 };
 
 TEST(SceneParser, testConstructor) {
@@ -44,6 +45,7 @@ TEST(SceneParserCamera, defaultCameraParsing) {
     ASSERT_TRUE(equal(cam.up, {0, 1, 0}));
     ASSERT_EQ(3, cam.distanceImagePlane);
 }
+
 TEST(SceneParserCamera, testCameraParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
@@ -82,13 +84,24 @@ TEST(SceneParserCamera, testMissingRequiredKey) {
 TEST(SceneParserCamera, testTypeNotFirst) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    istringstream scene("Camera { Name foo Type Basic }");
-    EXPECT_THROW(parser.ParseScene(scene), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Name foo Type Basic }"), ParserException);
 }
 
 TEST(SceneParserCamera, testArrayMissmatch) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    istringstream scene("Camera { Type Basic Name foo  Eye_point 0.8 }");
-    EXPECT_THROW(parser.ParseScene(scene), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Eye_point 0.8 }"), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Look_point 0.8 }"), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  up 0.8 }"), ParserException);
+}
+
+TEST(SceneParserMaterial, defaultMaterialParsing) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    CMaterial mat(CMaterial::BASIC,"");
+    EXPECT_CALL(generator, Material(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&mat), ::testing::Return(true)));
+    bool success = parser.ParseScene("Material { Type basic Name foo }");
+    ASSERT_TRUE(success);
+    
+    // Check defaults
 }

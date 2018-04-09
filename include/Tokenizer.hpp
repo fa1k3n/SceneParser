@@ -56,7 +56,10 @@ private:
 
     std::list<std::string> m_lexemes;
     
-    std::list<std::string> keywords = {"camera"};
+    std::list<std::string> keywords = {
+        "camera",
+        "material"
+    };
 };
 
 #endif /* CTOKENIZER_HPP */
