@@ -30,8 +30,8 @@ TEST(SceneParserCamera, defaultCameraParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     CCamera cam(CCamera::BASIC,"");
-    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::SaveArg<0>(&cam)).WillRepeatedly(::testing::Return(true));
-    istringstream scene( "Camera {\n"
+    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&cam), ::testing::Return(true)));
+   istringstream scene( "Camera {\n"
     "    Type Basic\n"
     "    Name first_camera\n"
     "}");
@@ -48,7 +48,7 @@ TEST(SceneParserCamera, testCameraParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     CCamera cam(CCamera::BASIC,"");
-    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::SaveArg<0>(&cam)).WillRepeatedly(::testing::Return(true));
+    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&cam), ::testing::Return(true)));
     istringstream scene( "Camera {\n"
     "    Type Basic\n"
     "    Name first_camera\n"
@@ -69,11 +69,26 @@ TEST(SceneParserCamera, testCameraParsing) {
     ASSERT_EQ(7, cam.distanceImagePlane);
 }
 
-TEST(SceneParserCamera, testBasicCameraParsingMissingRequiredKey) {
+TEST(SceneParserCamera, testMissingRequiredKey) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    CCamera cam(CCamera::BASIC,"");
     istringstream scene("Camera { Type Basic }");
-    bool success = parser.ParseScene(scene);
-    ASSERT_FALSE(success);
+    EXPECT_THROW(parser.ParseScene(scene), ParserException);
+    
+    istringstream scene2("Camera { }");
+    EXPECT_THROW(parser.ParseScene(scene2), ParserException);
+}
+
+TEST(SceneParserCamera, testTypeNotFirst) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    istringstream scene("Camera { Name foo Type Basic }");
+    EXPECT_THROW(parser.ParseScene(scene), ParserException);
+}
+
+TEST(SceneParserCamera, testArrayMissmatch) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    istringstream scene("Camera { Type Basic Name foo  Eye_point 0.8 }");
+    EXPECT_THROW(parser.ParseScene(scene), ParserException);
 }

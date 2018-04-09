@@ -30,6 +30,8 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
             switch(type) {
                 case SToken::SYM:
                     tokenizer.getNextToken(&tok);
+                    if(static_cast<SSymToken*>(tok.get())->str != "}")
+                        throw ParserException("GENERAL: Unclosed block");
                     return true;     // Block closed hopefully
                     break;
                     
@@ -81,14 +83,17 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer) {
     CPropertyMap properties;
     readBlock(tokenizer, properties); 
 
-    if(properties.first() != "type") return false; // First property must by type
-    if(!properties.hasProperty("name")) return false;  // Missing required field name
+    if(properties.first() != "type") throw ParserException("Camera: TYPE field missing or not first in block");
+    if(!properties.hasProperty("name")) throw ParserException("Camera: Missing required field NAME");
 
     auto type = properties["type"].toStr() == "basic" ? CCamera::BASIC : CCamera::ADVANCED;
     CCamera cam(type,  properties["name"].toStr());
     
-    if(properties.hasProperty("eye_point")) 
-        cam.setEyePoint(properties["eye_point"].toDoubleList());
+    if(properties.hasProperty("eye_point")) {
+        auto ep = properties["eye_point"].toDoubleList();
+        if(ep.size() != 3) throw ParserException("Camera: EYE_POINT array dimension mismatch");
+        cam.setEyePoint(ep);
+    }
     
     if(properties.hasProperty("look_point")) 
         cam.setLookPoint(properties["look_point"].toDoubleList());
@@ -99,8 +104,7 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer) {
     if(properties.hasProperty("distance_image_plane")) 
         cam.setDistanceImagePlane(properties["distance_image_plane"].toDouble());
 
-    m_generator.Camera(cam);
-    return true;
+    return m_generator.Camera(cam);
 }
 
 SKeywordToken* CSceneParser::getKeywordToken(CTokenizer& tokenizer) {

@@ -25,6 +25,16 @@ struct NonExistingProperty : public std::exception {
         std::string m_msg;
 };
 
+struct ParserException : public std::exception {
+    ParserException(std::string msg) : exception(), m_msg(msg) {}
+    const char* what() const throw() {
+        return m_msg.c_str();
+    }
+    
+    private:
+        std::string m_msg;
+};
+
 class CPropertyMap;
 
 struct SPropertyValue {
@@ -95,7 +105,7 @@ struct SPropertyValue {
     }
     
     std::vector<double> toDoubleList() {
-        if(type != DOUBLE_LIST)
+        if(type != DOUBLE_LIST && type != DOUBLE)
             throw ImplicitTypeConversion("Trying to read a double list from non-double list property" );
         return m_double;
     }
@@ -107,7 +117,7 @@ struct SPropertyValue {
     }
     
     std::vector<std::string> toStrList() {
-        if(type != STRING_LIST)
+        if(type != STRING_LIST && type != STRING)
             throw ImplicitTypeConversion("Trying to read a string list from non-string list property" );
         return m_str;
     }
