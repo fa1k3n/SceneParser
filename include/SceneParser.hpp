@@ -35,7 +35,7 @@ private:
     bool parseCamera(CTokenizer& tokenizer);
     
     SKeywordToken* getKeywordToken(CTokenizer& tokenizer);
-    SSeparatorToken* getSeparatorToken(CTokenizer& tokenizer);
+    SSymToken* getSymToken(CTokenizer& tokenizer);
     bool readBlock(CTokenizer& tokenizer, CPropertyMap& pairs);
     bool readProperty(CTokenizer& tokenizer, SProperty& propl);
     bool readConstArray(CTokenizer& tokenizer, std::vector<double>& vals);

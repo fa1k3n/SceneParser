@@ -11,9 +11,10 @@
 struct SToken {
     enum TokenType {
         NONE,  // Uninitialized token
-        KEYWORD, 
+        KEYWORD,
+        ID,
         CONST,
-        SEPARATOR
+        SYM
     };
     SToken(TokenType tt = NONE) : type(tt) {}
     TokenType type;
@@ -24,8 +25,14 @@ struct SKeywordToken : public SToken {
     std::string str;
 };
 
-struct SSeparatorToken : public SToken {
-    SSeparatorToken() : SToken(SToken::SEPARATOR) {};
+struct SIdToken : public SToken {
+    SIdToken(std::string value) : SToken(SToken::ID),  str(value) {};
+    std::string str;
+};
+
+struct SSymToken : public SToken {
+    SSymToken(std::string value) : SToken(SToken::SYM), str(value) {};
+    std::string str;
 };
 
 struct SConstToken : public SToken {
@@ -44,6 +51,7 @@ private:
     void getLexemesFromStream(std::istream& tokstream);
     bool skipComment(std::istream& tokstream);
     bool tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok);
+    bool isKeyword(std::string lexeme);
 
     std::list<std::string> m_lexemes;
 };

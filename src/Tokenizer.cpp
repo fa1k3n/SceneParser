@@ -77,15 +77,18 @@ bool CTokenizer::tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok
     } catch (std::invalid_argument& ) {}
     
     if(lexeme == "{" || lexeme == "}")
-        *tok =  std::unique_ptr<SSeparatorToken>(new SSeparatorToken);
-    else
+        *tok =  std::unique_ptr<SSymToken>(new SSymToken(lexeme));
+    else if(isKeyword(lexeme)) {
         *tok =  std::unique_ptr<SKeywordToken>(new SKeywordToken(lexeme));
+    } else
+        *tok =  std::unique_ptr<SIdToken>(new SIdToken(lexeme));
     return true;
 }
 
+bool CTokenizer::isKeyword(std::string lexeme) {
+    return lexeme == "camera";
+}
 
-
-    
 CTokenizer::~CTokenizer() {
 }
 

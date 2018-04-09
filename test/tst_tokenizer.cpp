@@ -11,8 +11,8 @@ TEST(Tokenizer, basicId) {
     std::unique_ptr<SToken> tok;
     int i = 0;
     while(tokenizer.getNextToken(&tok)) {
-        ASSERT_TRUE(tok->type == SToken::KEYWORD);
-        auto idt = static_cast<SKeywordToken*>(tok.get());
+        ASSERT_TRUE(tok->type == SToken::ID);
+        auto idt = static_cast<SIdToken*>(tok.get());
         ASSERT_STREQ(exp[i++], idt->str.c_str());
     }
 }
@@ -21,9 +21,9 @@ TEST(Tokenizer, basicBlock) {
     CTokenizer tokenizer("   { }");
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-    ASSERT_TRUE(tok->type == SToken::SEPARATOR);
+    ASSERT_TRUE(tok->type == SToken::SYM);
     tokenizer.getNextToken(&tok);
-    ASSERT_TRUE(tok->type == SToken::SEPARATOR);
+    ASSERT_TRUE(tok->type == SToken::SYM);
 }
 
 TEST(Tokenizer, basicConst) {
@@ -44,8 +44,8 @@ TEST(Tokenizer, basicStream) {
     CTokenizer t(tokstream);
     std::unique_ptr<SToken> tok;
     t.getNextToken(&tok);
-    ASSERT_TRUE(tok->type == SToken::KEYWORD);
-    auto idt = static_cast<SKeywordToken*>(tok.get());
+    ASSERT_TRUE(tok->type == SToken::ID);
+    auto idt = static_cast<SIdToken*>(tok.get());
     ASSERT_STREQ("baz", idt->str.c_str());
 }
 
@@ -60,7 +60,7 @@ TEST(Tokenizer, commentsAreSkipped) {
         CTokenizer toks("// This is a row comment\nfoo");
         std::unique_ptr<SToken> tok;
         ASSERT_TRUE(toks.getNextToken(&tok));
-         auto idt = static_cast<SKeywordToken*>(tok.get());
+         auto idt = static_cast<SIdToken*>(tok.get());
          ASSERT_STREQ("foo", idt->str.c_str());
     }  
 }
@@ -71,8 +71,8 @@ TEST(Tokenizer, allValuesAreSmall) {
     std::unique_ptr<SToken> tok;
     int i = 0;
     while(tokenizer.getNextToken(&tok)) {
-        ASSERT_TRUE(tok->type == SToken::KEYWORD);
-        auto idt = static_cast<SKeywordToken*>(tok.get());
+        ASSERT_TRUE(tok->type == SToken::ID);
+        auto idt = static_cast<SIdToken*>(tok.get());
         ASSERT_STREQ(exp[i++], idt->str.c_str());
     }
 }
@@ -83,14 +83,14 @@ TEST(Tokenizer, tabsAreHandeled) {
     std::unique_ptr<SToken> tok;
     int i = 0;
     while(tokenizer.getNextToken(&tok)) {
-        ASSERT_TRUE(tok->type == SToken::KEYWORD);
-        auto idt = static_cast<SKeywordToken*>(tok.get());
+        ASSERT_TRUE(tok->type == SToken::ID);
+        auto idt = static_cast<SIdToken*>(tok.get());
         ASSERT_STREQ(exp[i++], idt->str.c_str());
     }
 }
 
 TEST(Tokenizer, testPeek) {
     CTokenizer tokenizer("foo");
-    ASSERT_EQ(SToken::KEYWORD, tokenizer.peekNextToken());
-    ASSERT_EQ(SToken::KEYWORD, tokenizer.peekNextToken());
+    ASSERT_EQ(SToken::ID, tokenizer.peekNextToken());
+    ASSERT_EQ(SToken::ID, tokenizer.peekNextToken());
 }

@@ -21,7 +21,7 @@ bool CSceneParser::ParseScene(std::istream& scene) {
 }
 
 bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
-        getSeparatorToken(tokenizer);  // First block separator
+        getSymToken(tokenizer);  // First block separator
         
         SToken::TokenType type;
         std::unique_ptr<SToken> tok;
@@ -29,12 +29,12 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
         while((type = tokenizer.peekNextToken()) != SToken::NONE)  {
 
             switch(type) {
-                case SToken::SEPARATOR:
+                case SToken::SYM:
                     tokenizer.getNextToken(&tok);
                     return true;     // Block closed 
                     break;
                     
-                case SToken::KEYWORD:
+                case SToken::ID:
                 {
                     SProperty prop;
                     readProperty(tokenizer, prop);
@@ -54,10 +54,11 @@ bool CSceneParser::readProperty(CTokenizer& tokenizer, SProperty& val) {
      std::unique_ptr<SToken> tok;
 
     tokenizer.getNextToken(&tok);
-    val.name = static_cast<SKeywordToken*>(tok.get())->str;
+    val.name = static_cast<SIdToken*>(tok.get())->str;
     auto nextTok = tokenizer.peekNextToken() ;
-    if(nextTok == SToken::KEYWORD) {
-        val.value = getKeywordToken(tokenizer)->str;
+    if(nextTok == SToken::ID) {
+        tokenizer.getNextToken(&tok);
+        val.value = static_cast<SKeywordToken*>(tok.get())->str;
         //map[keyw->str] = value->str;
        
     } else if (nextTok == SToken::CONST) {
@@ -66,6 +67,7 @@ bool CSceneParser::readProperty(CTokenizer& tokenizer, SProperty& val) {
              tokenizer.getNextToken(&tok);
 
     }
+    return true;
 }
 
 
@@ -96,9 +98,9 @@ SKeywordToken* CSceneParser::getKeywordToken(CTokenizer& tokenizer) {
     return static_cast<SKeywordToken*>(tok.get());
 }
 
-SSeparatorToken* CSceneParser::getSeparatorToken(CTokenizer& tokenizer) {
+SSymToken* CSceneParser::getSymToken(CTokenizer& tokenizer) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-    if(tok->type != SToken::SEPARATOR) return nullptr;
-    return static_cast<SSeparatorToken*>(tok.get());
+    if(tok->type != SToken::SYM) return nullptr;
+    return static_cast<SSymToken*>(tok.get());
 }
