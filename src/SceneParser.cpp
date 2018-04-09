@@ -22,7 +22,6 @@ bool CSceneParser::ParseScene(std::istream& scene) {
 
 bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
         getSymToken(tokenizer);  // First block separator
-        
         SToken::TokenType type;
         std::unique_ptr<SToken> tok;
 
@@ -31,14 +30,16 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
             switch(type) {
                 case SToken::SYM:
                     tokenizer.getNextToken(&tok);
-                    return true;     // Block closed 
+                    return true;     // Block closed hopefully
                     break;
                     
                 case SToken::ID:
                 {
-                    SProperty prop;
-                    readProperty(tokenizer, prop);
-                    map.add(prop);
+                    tokenizer.getNextToken(&tok);  // Get name
+                    auto name = static_cast<SIdToken*>(tok.get())->str;
+                    SPropertyValue prop;
+                    readPropertyValue(tokenizer, prop);
+                    map[name] = prop;
                 }
                  break;
                       
@@ -50,23 +51,19 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
         return false; // Block never closed
 }
 
-bool CSceneParser::readProperty(CTokenizer& tokenizer, SProperty& val) {
-     std::unique_ptr<SToken> tok;
-
-    tokenizer.getNextToken(&tok);
-    val.name = static_cast<SIdToken*>(tok.get())->str;
+bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val) {
+;        
+    std::unique_ptr<SToken> tok;
     auto nextTok = tokenizer.peekNextToken() ;
     if(nextTok == SToken::ID) {
         tokenizer.getNextToken(&tok);
-        val.value = static_cast<SKeywordToken*>(tok.get())->str;
-        //map[keyw->str] = value->str;
-       
+        val = static_cast<SIdToken*>(tok.get())->str;       
     } else if (nextTok == SToken::CONST) {
         // Read all consts
         while( tokenizer.peekNextToken() == SToken::CONST)
              tokenizer.getNextToken(&tok);
 
-    }
+    } 
     return true;
 }
 
@@ -80,13 +77,14 @@ bool CSceneParser::readConstArray(CTokenizer& tokenizer, std::vector<double>& va
     return true;
 }
 
-bool CSceneParser::parseCamera(CTokenizer& tokenizer) {
-    
+bool CSceneParser::parseCamera(CTokenizer& tokenizer) { 
     CPropertyMap properties;
     readBlock(tokenizer, properties); 
+
     if(properties.first() != "type") return false; // First property must by type
-    auto type = properties["type"] == "basic" ? CCamera::BASIC : CCamera::ADVANCED;
-    CCamera cam(type,  properties["name"]);
+
+    auto type = properties["type"].toStr() == "basic" ? CCamera::BASIC : CCamera::ADVANCED;
+    CCamera cam(type,  properties["name"].toStr());
     
     m_generator.Camera(cam);
     return true;

@@ -24,14 +24,15 @@ TEST(SceneParserCamera, testBasicCameraParsing) {
     CSceneParser parser(generator);
     CCamera cam(CCamera::BASIC,"");
     EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::SaveArg<0>(&cam)).WillRepeatedly(::testing::Return(true));
-    istringstream scene( "Camera {"
-    "    Type Basic"
-    "    Eye_point 0.5 0.5 0.5"
-    "    Name first_camera"
-    " }");
+    istringstream scene( "Camera {\n"
+    "    Type Basic\n"
+    "    Eye_point 0.5 0.5 0.5\n"
+    "    Name first_camera\n"
+    " }\n");
   
     bool success = parser.ParseScene(scene);
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(success);    
+    ASSERT_EQ(CCamera::BASIC, cam.type);
     ASSERT_STREQ("first_camera", cam.name.c_str());
 }
 

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iterator>
 
+#include "Types.hpp"
 
 struct SToken {
     enum TokenType {

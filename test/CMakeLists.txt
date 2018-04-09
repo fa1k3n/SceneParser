@@ -26,6 +26,7 @@ set(GTEST
 set(TESTCASES
     tst_parser.cpp
     tst_tokenizer.cpp
+    tst_types.cpp
     )
 
 add_executable(build-tests EXCLUDE_FROM_ALL main.cpp ${TESTCASES} ${GTEST})

@@ -22,6 +22,7 @@ set(INC
     include/SceneParser.hpp
     include/Tokenizer.hpp
     include/ISceneGenerator.hpp
+    include/Types.hpp
 )
 
 include_directories("include")
