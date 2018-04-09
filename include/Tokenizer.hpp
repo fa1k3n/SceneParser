@@ -54,6 +54,8 @@ private:
     bool isKeyword(std::string lexeme);
 
     std::list<std::string> m_lexemes;
+    
+    std::list<std::string> keywords = {"camera"};
 };
 
 #endif /* CTOKENIZER_HPP */

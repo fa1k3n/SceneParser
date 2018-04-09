@@ -86,7 +86,8 @@ bool CTokenizer::tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok
 }
 
 bool CTokenizer::isKeyword(std::string lexeme) {
-    return lexeme == "camera";
+    return std::find(keywords.begin(), keywords.end(), lexeme) != keywords.end();
+    //return lexeme == "camera";
 }
 
 CTokenizer::~CTokenizer() {
