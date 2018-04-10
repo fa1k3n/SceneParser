@@ -28,6 +28,14 @@ struct SBasicCamera : public SCamera {
     CProperty<double> aspectRatio = 4/3;
 };
 
+struct SAdvancedCamera : public SCamera {
+    SAdvancedCamera(std::string n) : SCamera(CameraType::ADVANCED, n) {}
+    CProperty<double> left = 1;
+    CProperty<double> right = 1;
+    CProperty<double> top = 1;
+    CProperty<double> bottom = 1;
+};
+
 struct SMaterial {
     enum MaterialType {
         BASIC
@@ -41,6 +49,56 @@ struct SMaterial {
     CProperty<double, 3> specular = {{0, 0, 0}};
     CProperty<double> specularPower = 0;
     CProperty<std::string> texture;
+};
+
+struct SLight {
+    enum LightType {
+        POINT,
+        DIRECTIONAL
+    };
+    SLight(LightType t, std::string n) : type(t), name(n) {}
+    CProperty<LightType> type;
+    CProperty<std::string> name;
+    CProperty<double, 3> ambient = {{0, 0, 0}};
+    CProperty<double, 3> diffuse    = {{0, 0, 0}};
+    CProperty<double, 3> specular = {{0, 0, 0}};
+};
+
+struct SPointLight : public SLight {
+    SPointLight(std::string n) : SLight(SLight::POINT, n) {};
+    CProperty<double, 3> position = {{0, 0, 0}};
+    CProperty<double, 3> attenuationCoefs = {{1, 0, 0}};
+};
+
+struct SDirectionalLight : public SLight {
+    SDirectionalLight(std::string n) : SLight(SLight::DIRECTIONAL, n) {};
+    CProperty<double, 3> direction = {{0, 0, 0}};
+};
+
+struct SGeometry {
+     enum GeometryType {
+        MESH,
+        SPHERE
+    };
+    SGeometry(GeometryType t, std::string n) : type(t), name(n) {}
+    CProperty<GeometryType> type;
+    CProperty<std::string> name;
+};
+
+struct SSphere : public SGeometry {
+    SSphere(std::string n) : SGeometry(SGeometry::SPHERE, n) {}
+};
+
+struct SVertex {
+    CProperty<double, 3> p = {{0, 0, 0}};
+    CProperty<double, 3> n = {{0, 0, 0}};
+    CProperty<double, 3> tc = {{0, 0, 0}};
+};
+
+struct SMesh : public SGeometry {
+    SMesh(std::string n) : SGeometry(SGeometry::MESH, n) {}
+    CProperty<SVertex> vertices;
+    CProperty<double, 3> tri;
 };
 
 class ISceneGenerator {
