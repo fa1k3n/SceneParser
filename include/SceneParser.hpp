@@ -12,8 +12,8 @@ public:
     bool ParseScene(std::istream& scene);
     bool ParseScene(std::string scene);
 private:
-    bool parseCamera(CTokenizer& tokenizer);
-    bool parseMaterial(CTokenizer& tokenizer);
+    bool parseCamera(CTokenizer& tokenizer, CPropertyMap& properties);
+    bool parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties);
 
     SKeywordToken* getKeywordToken(CTokenizer& tokenizer);
     SSymToken* getSymToken(CTokenizer& tokenizer);

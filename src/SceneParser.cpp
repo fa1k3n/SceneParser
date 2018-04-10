@@ -15,11 +15,14 @@ bool CSceneParser::ParseScene(std::istream& scene) {
     CTokenizer tokenizer(scene);
     SToken::TokenType type = tokenizer.peekNextToken();
     if(type == SToken::KEYWORD) {
+        CPropertyMap properties;
         auto keyw = getKeywordToken(tokenizer)->str;
         if(keyw == "camera") {
-            if(!parseCamera(tokenizer)) return false;
+            readBlock(tokenizer, properties); 
+            if(!parseCamera(tokenizer, properties)) return false;
         } else if(keyw == "material") {
-            if(!parseMaterial(tokenizer)) return false;
+            readBlock(tokenizer, properties); 
+            if(!parseMaterial(tokenizer, properties)) return false;
         }
     }
 
@@ -67,37 +70,32 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
     return true;
 }
 
-bool CSceneParser::parseMaterial(CTokenizer& tokenizer) {
-    CPropertyMap properties;
-    readBlock(tokenizer, properties); 
-
+bool CSceneParser::parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties) {
     if(properties.first() != "type") throw ParserException("Camera: TYPE field missing or not first in block");
     if(!properties.hasProperty("name")) throw ParserException("Camera: Missing required field NAME");
   
-    CMaterial mat(CMaterial::BASIC,  properties["name"].toStr());
+    SMaterial mat(SMaterial::BASIC,  properties["name"].toStr());
     
     return m_generator.Material(mat);
 }
 
-bool CSceneParser::parseCamera(CTokenizer& tokenizer) { 
-    CPropertyMap properties;
-    CCamera* cam;
-
-    readBlock(tokenizer, properties); 
-
+bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) { 
+    SCamera* cam;
+   
     if(properties.first() != "type") throw ParserException("Camera: TYPE field missing or not first in block");
     if(!properties.hasProperty("name")) throw ParserException("Camera: Missing required field NAME");
 
-    auto type = properties["type"].toStr() == "basic" ? CCamera::BASIC : CCamera::ADVANCED;
-    if(type == CCamera::BASIC)
-        cam = new CBasicCamera( properties["name"].toStr()) ;
+    auto type = properties["type"].toStr() == "basic" ? SCamera::BASIC : SCamera::ADVANCED;
+    if(type == SCamera::BASIC) cam = new SBasicCamera( properties["name"].toStr()) ;
     
-    if(properties.hasProperty("eye_point")) cam->setEyePoint(properties["eye_point"].toDoubleList());
-    if(properties.hasProperty("look_point")) cam->setLookPoint(properties["look_point"].toDoubleList());
-    if(properties.hasProperty("up"))  cam->setUp(properties["up"].toDoubleList());
-    if(properties.hasProperty("distance_image_plane")) cam->setDistanceImagePlane(properties["distance_image_plane"].toDouble());
+    if(properties.hasProperty("eye_point")) cam->eyePoint.set(properties["eye_point"].toDoubleList());
+    if(properties.hasProperty("look_point")) cam->lookPoint.set(properties["look_point"].toDoubleList());
+    if(properties.hasProperty("up"))  cam->up.set(properties["up"].toDoubleList());
+    if(properties.hasProperty("distance_image_plane")) cam->distanceImagePlane.set(properties["distance_image_plane"].toDouble());
 
-    return m_generator.Camera(*cam);
+    bool ret = m_generator.Camera(*cam);
+    delete cam;
+    return ret;
 }
 
 SKeywordToken* CSceneParser::getKeywordToken(CTokenizer& tokenizer) {
