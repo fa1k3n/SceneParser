@@ -58,7 +58,8 @@ private:
     
     std::list<std::string> keywords = {
         "camera",
-        "material"
+        "material",
+        "light"
     };
 };
 

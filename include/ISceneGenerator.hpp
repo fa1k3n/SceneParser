@@ -106,6 +106,7 @@ public:
     virtual ~ISceneGenerator() {}
     virtual bool Camera(SCamera& cam) = 0;
     virtual bool Material(SMaterial& mat) = 0;
+    virtual bool Light(SLight& light) = 0;
 private:
 
 };

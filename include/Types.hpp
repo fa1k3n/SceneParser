@@ -150,7 +150,10 @@ public:
     
     bool hasProperty(std::string name) { return m_props.find(name) != m_props.end(); }
     
-    private:
+    std::map<std::string, SPropertyValue>::iterator begin() { return m_props.begin(); }
+    std::map<std::string, SPropertyValue>::iterator end() { return m_props.end(); }
+    
+private:
         std::map<std::string, SPropertyValue> m_props;
         std::string m_firstKey;
 };

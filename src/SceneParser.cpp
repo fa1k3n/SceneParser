@@ -1,6 +1,7 @@
 #include <SceneParser.hpp>
 #include <Tokenizer.hpp>
 #include <sstream>
+#include <set>
 
 CSceneParser::CSceneParser(ISceneGenerator& generator) : 
     m_generator(generator) 
@@ -23,6 +24,9 @@ bool CSceneParser::ParseScene(std::istream& scene) {
         } else if(keyw == "material") {
             readBlock(tokenizer, properties); 
             if(!parseMaterial(tokenizer, properties)) return false;
+        }  else if(keyw == "light") {
+            readBlock(tokenizer, properties); 
+            if(!parseLight(tokenizer, properties)) return false;
         }
     }
 
@@ -70,18 +74,55 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
     return true;
 }
 
+bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
+    SLight* light;
+    
+    //std::set<std::string> validKeywords = {"name", "type", "emission", "ambient", "diffuse", "specular", "specular_power", "texture"};
+    //if(!checkKeywords(properties, validKeywords)) throw ParserException("Material: unknown keyword");
+    if(properties.first() != "type") throw ParserException("Light: TYPE field missing or not first in block");
+    if(!properties.hasProperty("name")) throw ParserException("Light: Missing required field NAME");
+    
+    auto type = properties["type"].toStr() == "point" ? SLight::POINT : SLight::DIRECTIONAL;
+    if(type == SLight::POINT) {
+        light = new SPointLight( properties["name"].toStr()) ;
+        auto l = static_cast<SPointLight*>(light);
+        if(properties.hasProperty("position")) l->position.set(properties["position"].toDoubleList());
+        if(properties.hasProperty("attenuation_coefs")) l->attenuationCoefs.set(properties["attenuation_coefs"].toDouble());
+    }
+    
+    if(properties.hasProperty("ambient")) light->ambient.set(properties["ambient"].toDoubleList());
+    if(properties.hasProperty("diffuse")) light->diffuse.set(properties["diffuse"].toDoubleList());
+    if(properties.hasProperty("specular")) light->specular.set(properties["specular"].toDoubleList());
+     
+    bool ret = m_generator.Light(*light);
+    delete light;
+    return ret;
+}
+
 bool CSceneParser::parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties) {
+    std::set<std::string> validKeywords = {"name", "type", "emission", "ambient", "diffuse", "specular", "specular_power", "texture"};
+    if(!checkKeywords(properties, validKeywords)) throw ParserException("Material: unknown keyword");
+    
     if(properties.first() != "type") throw ParserException("Camera: TYPE field missing or not first in block");
     if(!properties.hasProperty("name")) throw ParserException("Camera: Missing required field NAME");
-  
-    SMaterial mat(SMaterial::BASIC,  properties["name"].toStr());
     
+    SMaterial mat(SMaterial::BASIC,  properties["name"].toStr());
+    if(properties.hasProperty("emission")) mat.emission.set(properties["emission"].toDoubleList());
+    if(properties.hasProperty("ambient")) mat.ambient.set(properties["ambient"].toDoubleList());
+    if(properties.hasProperty("diffuse")) mat.diffuse.set(properties["diffuse"].toDoubleList());
+    if(properties.hasProperty("specular")) mat.specular.set(properties["specular"].toDoubleList());
+    if(properties.hasProperty("specular_power")) mat.specularPower.set(properties["specular_power"].toDouble());
+    if(properties.hasProperty("texture")) mat.texture.set(properties["texture"].toStr());
+
     return m_generator.Material(mat);
 }
 
 bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) { 
     SCamera* cam;
    
+    std::set<std::string> validKeywords = {"name", "type", "eye_point", "look_point", "up", "distance_image_plane"};
+    if(!checkKeywords(properties, validKeywords)) throw ParserException("Camera: unknown keyword");
+    
     if(properties.first() != "type") throw ParserException("Camera: TYPE field missing or not first in block");
     if(!properties.hasProperty("name")) throw ParserException("Camera: Missing required field NAME");
 
@@ -103,6 +144,12 @@ SKeywordToken* CSceneParser::getKeywordToken(CTokenizer& tokenizer) {
     tokenizer.getNextToken(&tok);
      if(tok->type != SToken::KEYWORD) return nullptr;
     return static_cast<SKeywordToken*>(tok.get());
+}
+
+bool CSceneParser::checkKeywords(CPropertyMap& properties, std::set<std::string> validKeywords) {
+    for(auto keyw : properties) 
+        if(validKeywords.find(keyw.first) == validKeywords.end()) return false;
+    return true;
 }
 
 SSymToken* CSceneParser::getSymToken(CTokenizer& tokenizer) {

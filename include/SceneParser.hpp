@@ -5,6 +5,7 @@
 #include <istream>
 #include <Tokenizer.hpp>
 #include <vector>
+#include <set>
 
 class CSceneParser {
 public:
@@ -14,7 +15,10 @@ public:
 private:
     bool parseCamera(CTokenizer& tokenizer, CPropertyMap& properties);
     bool parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties);
+    bool parseLight(CTokenizer& tokenizer, CPropertyMap& properties);
 
+    bool checkKeywords(CPropertyMap& properties, std::set<std::string> validKeywords);
+    
     SKeywordToken* getKeywordToken(CTokenizer& tokenizer);
     SSymToken* getSymToken(CTokenizer& tokenizer);
     SConstToken* getConstToken(CTokenizer& tokenizer);
