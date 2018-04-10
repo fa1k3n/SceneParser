@@ -35,6 +35,8 @@ struct ParserException : public std::exception {
         std::string m_msg;
 };
 
+
+
 class CPropertyMap;
 
 struct SPropertyValue {

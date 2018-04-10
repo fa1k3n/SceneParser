@@ -4,6 +4,18 @@
 #include <string>
 #include <vector>
 
+#include <Types.hpp>
+
+struct CameraException : public std::exception {
+    CameraException(std::string msg) : exception(), m_msg(msg) {}
+    const char* what() const throw() {
+        return m_msg.c_str();
+    }
+    
+    private:
+        std::string m_msg;
+};
+
 class CCamera {
 public:
     enum CameraType {
@@ -12,16 +24,19 @@ public:
     };
     CCamera(CameraType t, std::string n) : type(t), name(n) {}
     CCamera& setEyePoint(std::vector<double> ep) {
+        if(ep.size() != 3) throw CameraException("Camera: eye point array dimension mismatch");
         eyePoint = ep;
         return *this;
     }
     
     CCamera& setLookPoint(std::vector<double> ep) {
+        if(ep.size() != 3) throw CameraException("Camera: look point array dimension mismatch");
         lookPoint = ep;
         return *this;
     }
     
     CCamera& setUp(std::vector<double> ep) {
+        if(ep.size() != 3) throw CameraException("Camera: up array dimension mismatch");
         up = ep;
         return *this;
     }
@@ -65,6 +80,12 @@ public:
     
     MaterialType type;
     std::string name;
+    std::vector<double> emission = {0, 0, 0};
+    std::vector<double> ambient = {0, 0, 0};
+    std::vector<double> diffuse = {0, 0, 0};
+    std::vector<double> specular = {0, 0, 0};
+    double specularPower = 0;
+    std::string texture = "";;
 };
 
 class ISceneGenerator {

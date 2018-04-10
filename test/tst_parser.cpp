@@ -90,9 +90,9 @@ TEST(SceneParserCamera, testTypeNotFirst) {
 TEST(SceneParserCamera, testArrayMissmatch) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Eye_point 0.8 }"), ParserException);
-    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Look_point 0.8 }"), ParserException);
-    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  up 0.8 }"), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Eye_point 0.8 }"), CameraException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Look_point 0.8 }"), CameraException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  up 0.8 }"), CameraException);
 }
 
 TEST(SceneParserMaterial, defaultMaterialParsing) {
@@ -104,4 +104,11 @@ TEST(SceneParserMaterial, defaultMaterialParsing) {
     ASSERT_TRUE(success);
     
     // Check defaults
+    ASSERT_TRUE(equal(mat.emission, {0, 0, 0}));
+    ASSERT_TRUE(equal(mat.ambient, {0, 0, 0}));
+    ASSERT_TRUE(equal(mat.diffuse, {0, 0, 0}));
+    ASSERT_TRUE(equal(mat.specular, {0, 0, 0}));
+    ASSERT_EQ(0, mat.specularPower);
+    ASSERT_STREQ("", mat.texture.c_str());
+
 }
