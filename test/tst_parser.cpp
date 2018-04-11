@@ -13,6 +13,12 @@ public:
     MOCK_METHOD1(Camera, bool(SCamera&));   
     MOCK_METHOD1(Material, bool(SMaterial&));
     MOCK_METHOD1(Light, bool(SLight&));
+    void SaveLight(SLight& l) {
+        
+    }
+    
+    SPointLight* pointl;
+    SDirectionalLight* dirl;
 };
 
 TEST(SceneParser, testConstructor) {
