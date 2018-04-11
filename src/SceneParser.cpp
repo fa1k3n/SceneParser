@@ -82,13 +82,20 @@ bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
     if(properties.first() != "type") throw ParserException("Light: TYPE field missing or not first in block");
     if(!properties.hasProperty("name")) throw ParserException("Light: Missing required field NAME");
     
-    auto type = properties["type"].toStr() == "point" ? SLight::POINT : SLight::DIRECTIONAL;
+    SLight::LightType type = SLight::NONE;
+    if(properties["type"].toStr() == "point") type = SLight::POINT;
+    else if(properties["type"].toStr() == "directional") type =SLight::DIRECTIONAL;
     if(type == SLight::POINT) {
         light = new SPointLight( properties["name"].toStr()) ;
         auto l = static_cast<SPointLight*>(light);
         if(properties.hasProperty("position")) l->position.set(properties["position"].toDoubleList());
         if(properties.hasProperty("attenuation_coefs")) l->attenuationCoefs.set(properties["attenuation_coefs"].toDouble());
-    }
+    } else if (type == SLight::DIRECTIONAL) {
+        light = new SDirectionalLight( properties["name"].toStr()) ;
+        auto l = static_cast<SDirectionalLight*>(light);
+        if(properties.hasProperty("direction")) l->direction.set(properties["direction"].toDoubleList());
+    } else 
+        throw ParserException("Light: unknown light type");
     
     if(properties.hasProperty("ambient")) light->ambient.set(properties["ambient"].toDoubleList());
     if(properties.hasProperty("diffuse")) light->diffuse.set(properties["diffuse"].toDoubleList());

@@ -173,18 +173,42 @@ TEST(SceneParserLight, defaultPointLightParsing) {
 TEST(SceneParserLight, testPointLightParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SPointLight light("");
-    EXPECT_CALL(generator, Light(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(static_cast<SLight*>(&light)), ::testing::Return(true)));
+    SLight l(SLight::POINT, "");
+    EXPECT_CALL(generator, Light(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&l), ::testing::Return(true)));
     bool success = parser.ParseScene("Light { "
     "Type POINT Name foo "
     "ambient 1 0 0 diffuse 0 1 0 specular 0 0 1 "
     "position 1 0 0 attenuation_coefs 1 0 1 }");
+    SPointLight* light = static_cast<SPointLight*>(&l);
     ASSERT_TRUE(success);
     
-    ASSERT_EQ(SLight::POINT, light.type());
+    ASSERT_EQ(SLight::POINT, light->type());
+    ASSERT_STREQ("foo", light->name().c_str());
+    
+    ASSERT_TRUE(equal(light->ambient.toVector(), {1, 0, 0}));
+    ASSERT_TRUE(equal(light->diffuse.toVector(), {0, 1, 0}));
+    ASSERT_TRUE(equal(light->specular.toVector(), {0, 0, 1}));
+    //ASSERT_TRUE(equal(light->position.toVector(), {1, 0, 0}));
+ }
+
+TEST(SceneParserLight, defaultDirectionalLightParsing) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    SDirectionalLight light("");
+    EXPECT_CALL(generator, Light(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(static_cast<SLight*>(&light)), ::testing::Return(true)));
+    bool success = parser.ParseScene("Light { Type DIRECTIONAL Name foo }");
+    ASSERT_TRUE(success);
+    
+    ASSERT_EQ(SLight::DIRECTIONAL, light.type());
     ASSERT_STREQ("foo", light.name().c_str());
     
-    ASSERT_TRUE(equal(light.ambient.toVector(), {1, 0, 0}));
-    ASSERT_TRUE(equal(light.diffuse.toVector(), {0, 1, 0}));
-    ASSERT_TRUE(equal(light.specular.toVector(), {0, 0, 1}));
- }
+    // Check defaults, same
+    ASSERT_TRUE(equal(light.direction.toVector(), {0, 0, 0}));
+}
+
+TEST(SceneParserLight, unknownLightTypeWillThrow) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    SDirectionalLight light("");
+    EXPECT_THROW(parser.ParseScene("Light { Type unknown Name foo }"), ParserException);
+}

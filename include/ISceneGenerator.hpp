@@ -53,10 +53,11 @@ struct SMaterial {
 
 struct SLight {
     enum LightType {
+        NONE,
         POINT,
         DIRECTIONAL
     };
-    SLight(LightType t, std::string n) : type(t), name(n) {}
+    SLight(LightType t = SLight::NONE, std::string n = "") : type(t), name(n) {}
     CProperty<LightType> type;
     CProperty<std::string> name;
     CProperty<double, 3> ambient = {{0, 0, 0}};
