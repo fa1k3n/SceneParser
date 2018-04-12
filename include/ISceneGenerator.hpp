@@ -58,6 +58,7 @@ struct SLight {
         DIRECTIONAL
     };
     SLight(LightType t = SLight::NONE, std::string n = "") : type(t), name(n) {}
+    SLight(const SLight& l) : type(l.type), name(l.name), ambient(l.ambient), diffuse(l.diffuse), specular(l.specular) {}
     CProperty<LightType> type;
     CProperty<std::string> name;
     CProperty<double, 3> ambient = {{0, 0, 0}};
@@ -73,6 +74,7 @@ struct SPointLight : public SLight {
 
 struct SDirectionalLight : public SLight {
     SDirectionalLight(std::string n) : SLight(SLight::DIRECTIONAL, n) {};
+    SDirectionalLight(const SDirectionalLight& l) : SLight(l), direction(l.direction) {}
     CProperty<double, 3> direction = {{0, 0, 0}};
 };
 

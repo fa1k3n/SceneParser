@@ -5,7 +5,6 @@
 
 #include <SceneParser.hpp>
 #include <ISceneGenerator.hpp>
-
 using namespace std;
 
 class TestSceneGenerator : public ISceneGenerator {
@@ -13,12 +12,33 @@ public:
     MOCK_METHOD1(Camera, bool(SCamera&));   
     MOCK_METHOD1(Material, bool(SMaterial&));
     MOCK_METHOD1(Light, bool(SLight&));
-    void SaveLight(SLight& l) {
-        
+    
+    TestSceneGenerator() {
+        ON_CALL(*this, Light(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveLight));
+    }
+     ~TestSceneGenerator() {
+         if(light) delete light;
+         if(material) delete material;
+     }
+     
+    bool SaveLight(SLight& l) { 
+        if(l.type() == SLight::DIRECTIONAL) light = new SDirectionalLight(*static_cast<SDirectionalLight*>(&l));
+        else if(l.type() == SLight::POINT) light = new SPointLight(*static_cast<SPointLight*>(&l));
+        return true;
     }
     
-    SPointLight* pointl;
-    SDirectionalLight* dirl;
+    bool SaveMaterial(SMaterial &mat) {
+        material = new SMaterial(mat);
+        return true;
+    }
+    
+    SDirectionalLight* GetDirectionalLight() { return static_cast<SDirectionalLight*>(light); }
+    SPointLight* GetPointLight() { return static_cast<SPointLight*>(light);}
+    
+    SMaterial* GetMaterial() { return material; }
+
+    SLight* light = nullptr; 
+    SMaterial* material = nullptr;
 };
 
 TEST(SceneParser, testConstructor) {
@@ -180,13 +200,14 @@ TEST(SceneParserLight, testPointLightParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     SLight l(SLight::POINT, "");
-    EXPECT_CALL(generator, Light(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&l), ::testing::Return(true)));
+    EXPECT_CALL(generator, Light(::testing::_));
     bool success = parser.ParseScene("Light { "
     "Type POINT Name foo "
     "ambient 1 0 0 diffuse 0 1 0 specular 0 0 1 "
     "position 1 0 0 attenuation_coefs 1 0 1 }");
-    SPointLight* light = static_cast<SPointLight*>(&l);
     ASSERT_TRUE(success);
+    SPointLight* light = generator.GetPointLight();
+    EXPECT_TRUE(light != nullptr);
     
     ASSERT_EQ(SLight::POINT, light->type());
     ASSERT_STREQ("foo", light->name().c_str());
@@ -194,22 +215,39 @@ TEST(SceneParserLight, testPointLightParsing) {
     ASSERT_TRUE(equal(light->ambient.toVector(), {1, 0, 0}));
     ASSERT_TRUE(equal(light->diffuse.toVector(), {0, 1, 0}));
     ASSERT_TRUE(equal(light->specular.toVector(), {0, 0, 1}));
-    //ASSERT_TRUE(equal(light->position.toVector(), {1, 0, 0}));
+    ASSERT_TRUE(equal(light->position.toVector(), {1, 0, 0}));
+    ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
  }
 
 TEST(SceneParserLight, defaultDirectionalLightParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SDirectionalLight light("");
-    EXPECT_CALL(generator, Light(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(static_cast<SLight*>(&light)), ::testing::Return(true)));
+    EXPECT_CALL(generator, Light(::testing::_));
+
     bool success = parser.ParseScene("Light { Type DIRECTIONAL Name foo }");
     ASSERT_TRUE(success);
+
+    SDirectionalLight *light = generator.GetDirectionalLight();
+    EXPECT_TRUE(light != nullptr);
     
-    ASSERT_EQ(SLight::DIRECTIONAL, light.type());
-    ASSERT_STREQ("foo", light.name().c_str());
+    ASSERT_EQ(SLight::DIRECTIONAL, light->type());
+    ASSERT_STREQ("foo", light->name().c_str());
     
     // Check defaults, same
-    ASSERT_TRUE(equal(light.direction.toVector(), {0, 0, 0}));
+   ASSERT_TRUE(equal(light->direction.toVector(), {0, 0, 0}));
+}
+
+TEST(SceneParserLight, testDirectionalLightParsing) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    EXPECT_CALL(generator, Light(::testing::_));
+
+    bool success = parser.ParseScene("Light { Type DIRECTIONAL Name foo direction -1 1 0 }");
+    ASSERT_TRUE(success);
+
+    SDirectionalLight *light = generator.GetDirectionalLight();
+    EXPECT_TRUE(light != nullptr);
+    ASSERT_TRUE(equal(light->direction.toVector(), {-1, 1, 0}));
 }
 
 TEST(SceneParserLight, unknownLightTypeWillThrow) {
