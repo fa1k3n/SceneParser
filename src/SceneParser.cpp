@@ -75,10 +75,11 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
 }
 
 bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
-    //SLight* light;
+    SLight* light;
     
-    //std::set<std::string> validKeywords = {"name", "type", "emission", "ambient", "diffuse", "specular", "specular_power", "texture"};
-    //if(!checkKeywords(properties, validKeywords)) throw ParserException("Material: unknown keyword");
+    std::set<std::string> validKeywords = {"name", "type", "ambient", "diffuse", "specular", "position", "attenuation_coefs", "direction"};
+    if(!checkKeywords(properties, validKeywords)) throw ParserException("Light: unknown keyword");
+    
     if(properties.first() != "type") throw ParserException("Light: TYPE field missing or not first in block");
     if(!properties.hasProperty("name")) throw ParserException("Light: Missing required field NAME");
     
@@ -86,29 +87,27 @@ bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
     if(properties["type"].toStr() == "point") type = SLight::POINT;
     else if(properties["type"].toStr() == "directional") type =SLight::DIRECTIONAL;
     
+    if(type == SLight::POINT) light = new SPointLight(properties["name"].toStr());
+    else if(type == SLight::DIRECTIONAL) light = new SDirectionalLight(properties["name"].toStr());
+    else throw ParserException("Light: unknown light type");
+
+    if(properties.hasProperty("ambient")) light->ambient.set(properties["ambient"].toDoubleList());
+    if(properties.hasProperty("diffuse")) light->diffuse.set(properties["diffuse"].toDoubleList());
+    if(properties.hasProperty("specular")) light->specular.set(properties["specular"].toDoubleList());
+    
     bool ret;
     if(type == SLight::POINT) {
-        SPointLight* light = new SPointLight( properties["name"].toStr()) ;
-        if(properties.hasProperty("ambient")) light->ambient.set(properties["ambient"].toDoubleList());
-        if(properties.hasProperty("diffuse")) light->diffuse.set(properties["diffuse"].toDoubleList());
-        if(properties.hasProperty("specular")) light->specular.set(properties["specular"].toDoubleList());
-        if(properties.hasProperty("position")) light->position.set(properties["position"].toDoubleList());
-        if(properties.hasProperty("attenuation_coefs")) light->attenuationCoefs.set(properties["attenuation_coefs"].toDouble());
-        ret = m_generator.Light(*light);
-            delete light;
-
+        SPointLight* pl = static_cast<SPointLight*>(light);
+        if(properties.hasProperty("position")) pl->position.set(properties["position"].toDoubleList());
+        if(properties.hasProperty("attenuation_coefs")) pl->attenuationCoefs.set(properties["attenuation_coefs"].toDouble());
+        ret = m_generator.Light(*pl);
     } else if (type == SLight::DIRECTIONAL) {
-        SDirectionalLight* light = new SDirectionalLight( properties["name"].toStr()) ;
-        if(properties.hasProperty("ambient")) light->ambient.set(properties["ambient"].toDoubleList());
-        if(properties.hasProperty("diffuse")) light->diffuse.set(properties["diffuse"].toDoubleList());
-        if(properties.hasProperty("specular")) light->specular.set(properties["specular"].toDoubleList());
-        if(properties.hasProperty("direction")) light->direction.set(properties["direction"].toDoubleList());
-        ret = m_generator.Light(*light);
-            delete light;
-
-    } else 
-        throw ParserException("Light: unknown light type");
-
+        SDirectionalLight* dl = static_cast<SDirectionalLight*>(light) ;
+        if(properties.hasProperty("direction")) dl->direction.set(properties["direction"].toDoubleList());
+        ret = m_generator.Light(*dl);
+    } 
+   
+    delete light;
     return ret;
 }
 
