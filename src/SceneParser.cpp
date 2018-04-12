@@ -130,7 +130,7 @@ bool CSceneParser::parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties
 }
 
 bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) { 
-    SCamera* cam;
+    SCamera* cam = nullptr;
    
     std::set<std::string> validKeywords = {"name", "type", "eye_point", "look_point", "up", "distance_image_plane"};
     if(!checkKeywords(properties, validKeywords)) throw ParserException("Camera: unknown keyword");
@@ -140,13 +140,26 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
 
     auto type = properties["type"].toStr() == "basic" ? SCamera::BASIC : SCamera::ADVANCED;
     if(type == SCamera::BASIC) cam = new SBasicCamera( properties["name"].toStr()) ;
-    
+    else if(type == SCamera::ADVANCED) cam = new SAdvancedCamera(properties["name"].toStr());
+    else throw ParserException("Camera: unknown camera type");
+
     if(properties.hasProperty("eye_point")) cam->eyePoint.set(properties["eye_point"].toDoubleList());
     if(properties.hasProperty("look_point")) cam->lookPoint.set(properties["look_point"].toDoubleList());
     if(properties.hasProperty("up"))  cam->up.set(properties["up"].toDoubleList());
     if(properties.hasProperty("distance_image_plane")) cam->distanceImagePlane.set(properties["distance_image_plane"].toDouble());
 
-    bool ret = m_generator.Camera(*cam);
+    bool ret = false;
+    if(type == SCamera::BASIC) {
+        SBasicCamera* bc = static_cast<SBasicCamera*>(cam);
+        if(properties.hasProperty("fov")) bc->fov.set(properties["fov"].toDouble());
+        if(properties.hasProperty("aspect_ratio")) bc->aspectRatio.set(properties["aspect_ratio"].toDouble());
+        ret = m_generator.Camera(*bc);
+    } else if (type == SCamera::ADVANCED) {
+        SAdvancedCamera* ac = static_cast<SAdvancedCamera*>(cam);
+        
+        ret = m_generator.Camera(*ac);
+    }
+
     delete cam;
     return ret;
 }
