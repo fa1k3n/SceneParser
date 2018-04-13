@@ -12,16 +12,19 @@ public:
     MOCK_METHOD1(Camera, bool(SCamera&));   
     MOCK_METHOD1(Material, bool(SMaterial&));
     MOCK_METHOD1(Light, bool(SLight&));
-    
+    MOCK_METHOD1(Geometry, bool(SGeometry&));
+
     TestSceneGenerator() {
         ON_CALL(*this, Light(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveLight));
         ON_CALL(*this, Camera(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveCamera));
         ON_CALL(*this, Material(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveMaterial));
+        ON_CALL(*this, Geometry(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveGeometry));
     }
      ~TestSceneGenerator() {
          if(light) delete light;
          if(material) delete material;
          if(camera) delete camera;
+         if(geometry) delete geometry;
      }
      
     bool SaveLight(SLight& l) { 
@@ -41,6 +44,11 @@ public:
          return true;
     }
     
+    bool SaveGeometry(SGeometry& geom) {
+        if(geom.type() == SGeometry::SPHERE) geometry = new SSphere(*static_cast<SSphere*>(&geom));
+        return true;
+    }
+    
     SDirectionalLight* GetDirectionalLight() { return static_cast<SDirectionalLight*>(light); }
     SPointLight* GetPointLight() { return static_cast<SPointLight*>(light);}
     
@@ -49,9 +57,12 @@ public:
 
     SBasicMaterial* GetBasicMaterial() { return static_cast<SBasicMaterial*>(material); }
 
+    SSphere* GetSphere() { return static_cast<SSphere*>(geometry); }
+    
     SLight* light = nullptr; 
     SMaterial* material = nullptr;
     SCamera* camera = nullptr;
+    SGeometry* geometry = nullptr;
 };
 
 TEST(SceneParser, testConstructor) {
@@ -321,4 +332,14 @@ TEST(SceneParserLight, unknownLightTypeWillThrow) {
     CSceneParser parser(generator);
     SDirectionalLight light("");
     EXPECT_THROW(parser.ParseScene("Light { Type unknown Name foo }"), ParserException);
+}
+
+TEST(SceneParserGeometry, defaultGeometry) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    EXPECT_CALL(generator, Geometry(::testing::_));
+    bool success = parser.ParseScene("Geometry { type sphere name foo }");
+    ASSERT_TRUE(success);
+    SSphere* sphere = generator.GetSphere();
+    EXPECT_TRUE(sphere != nullptr);
 }

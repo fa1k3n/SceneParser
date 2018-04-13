@@ -16,6 +16,7 @@ private:
     bool parseCamera(CTokenizer& tokenizer, CPropertyMap& properties);
     bool parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties);
     bool parseLight(CTokenizer& tokenizer, CPropertyMap& properties);
+    bool parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties);
 
     bool checkKeywords(CPropertyMap& properties, std::set<std::string> validKeywords);
     

@@ -27,6 +27,9 @@ bool CSceneParser::ParseScene(std::istream& scene) {
         }  else if(keyw == "light") {
             readBlock(tokenizer, properties); 
             if(!parseLight(tokenizer, properties)) return false;
+        }  else if(keyw == "geometry") {
+            readBlock(tokenizer, properties); 
+            if(!parseGeometry(tokenizer, properties)) return false;
         }
     }
 
@@ -164,6 +167,27 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
     }
 
     delete cam;
+    return ret;
+}
+
+bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties) {
+     SGeometry* geom = nullptr;
+   
+    std::set<std::string> validKeywords = {"name", "type"};
+    if(!checkKeywords(properties, validKeywords)) throw ParserException("Geometry: unknown keyword");
+    
+    if(properties.first() != "type") throw ParserException("Geometry: TYPE field missing or not first in block");
+    if(!properties.hasProperty("name")) throw ParserException("Geometry: Missing required field NAME");
+
+    auto type = SGeometry::NONE;;
+    if(properties["type"].toStr() == "sphere") type = SGeometry::SPHERE;
+    else if(properties["type"].toStr() == "mesh") type = SGeometry::MESH;
+    
+    if(type == SGeometry::SPHERE) geom = new SSphere( properties["name"].toStr()) ;
+    else throw ParserException("Geometry: unknown geometry");
+
+    bool ret = m_generator.Geometry(*geom);
+    delete geom;
     return ret;
 }
 
