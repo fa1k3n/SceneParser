@@ -15,10 +15,13 @@ public:
     
     TestSceneGenerator() {
         ON_CALL(*this, Light(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveLight));
+        ON_CALL(*this, Camera(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveCamera));
+        ON_CALL(*this, Material(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveMaterial));
     }
      ~TestSceneGenerator() {
          if(light) delete light;
          if(material) delete material;
+         if(camera) delete camera;
      }
      
     bool SaveLight(SLight& l) { 
@@ -28,17 +31,27 @@ public:
     }
     
     bool SaveMaterial(SMaterial &mat) {
-        material = new SMaterial(mat);
+        if(mat.type() == SMaterial::BASIC) material = new SBasicMaterial(*static_cast<SBasicMaterial*>(&mat));
         return true;
+    }
+    
+    bool SaveCamera(SCamera& cam) {
+         if(cam.type() == SCamera::BASIC) camera = new SBasicCamera(*static_cast<SBasicCamera*>(&cam));
+         else if(cam.type() == SCamera::ADVANCED) camera = new SAdvancedCamera(*static_cast<SAdvancedCamera*>(&cam));
+         return true;
     }
     
     SDirectionalLight* GetDirectionalLight() { return static_cast<SDirectionalLight*>(light); }
     SPointLight* GetPointLight() { return static_cast<SPointLight*>(light);}
     
-    SMaterial* GetMaterial() { return material; }
+    SBasicCamera* GetBasicCamera() {  return static_cast<SBasicCamera*>(camera); }
+    SAdvancedCamera* GetAdvancedCamera() {  return static_cast<SAdvancedCamera*>(camera); }
+
+    SBasicMaterial* GetBasicMaterial() { return static_cast<SBasicMaterial*>(material); }
 
     SLight* light = nullptr; 
     SMaterial* material = nullptr;
+    SCamera* camera = nullptr;
 };
 
 TEST(SceneParser, testConstructor) {
@@ -57,27 +70,29 @@ bool equal(const std::vector<double>& a, const std::vector<double>& b) {
 TEST(SceneParserCamera, defaultCameraParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SCamera cam(SCamera::BASIC,"");
-    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&cam), ::testing::Return(true)));
+   EXPECT_CALL(generator, Camera(::testing::_));
    istringstream scene( "Camera {\n"
     "    Type Basic\n"
     "    Name first_camera\n"
     "}");
     bool success = parser.ParseScene(scene);
     ASSERT_TRUE(success);
+    SBasicCamera* cam = generator.GetBasicCamera();
+    EXPECT_TRUE(cam != nullptr);
     
     // Check defaults
-    ASSERT_TRUE(equal(cam.eyePoint.toVector(), {0, 0, -1}));
-    ASSERT_TRUE(equal(cam.lookPoint.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(cam.up.toVector(), {0, 1, 0}));
-    ASSERT_EQ(3, cam.distanceImagePlane.get());
+    ASSERT_TRUE(equal(cam->eyePoint.toVector(), {0, 0, -1}));
+    ASSERT_TRUE(equal(cam->lookPoint.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(cam->up.toVector(), {0, 1, 0}));
+    ASSERT_EQ(3, cam->distanceImagePlane.get());
+    ASSERT_EQ(90, cam->fov.get());
+    ASSERT_EQ(4.0/3.0, cam->aspectRatio.get());
 }
 
 TEST(SceneParserCamera, testCameraParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SCamera cam(SCamera::BASIC,"");
-    EXPECT_CALL(generator, Camera(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&cam), ::testing::Return(true)));
+    EXPECT_CALL(generator, Camera(::testing::_));
     istringstream scene( "Camera {\n"
     "    Type Basic\n"
     "    Name first_camera\n"
@@ -85,17 +100,68 @@ TEST(SceneParserCamera, testCameraParsing) {
     "    Look_point .3 0.1 -0.7 \n"
     "    Up 0.2 -0.1 0 \n"
     "    Distance_image_plane 7 \n"
+    "    fov 45  \n"
+    "    aspect_ratio 0.3 \n"
     " }\n");
   
     bool success = parser.ParseScene(scene);
     ASSERT_TRUE(success);    
-    ASSERT_EQ(SCamera::BASIC, cam.type.get());
-    ASSERT_STREQ("first_camera", cam.name.get().c_str());
+    SBasicCamera* cam = generator.GetBasicCamera();
+    EXPECT_TRUE(cam != nullptr);
     
-    ASSERT_TRUE(equal(cam.eyePoint.toVector(), {0.2, 0.3, 0.6}));
-    ASSERT_TRUE(equal(cam.lookPoint.toVector(), {0.3, 0.1, -0.7}));
-    ASSERT_TRUE(equal(cam.up.toVector(), {0.2, -0.1, 0}));
-    ASSERT_EQ(7, cam.distanceImagePlane.get());
+    ASSERT_EQ(SCamera::BASIC, cam->type.get());
+    ASSERT_STREQ("first_camera", cam->name.get().c_str());
+    
+    ASSERT_TRUE(equal(cam->eyePoint.toVector(), {0.2, 0.3, 0.6}));
+    ASSERT_TRUE(equal(cam->lookPoint.toVector(), {0.3, 0.1, -0.7}));
+    ASSERT_TRUE(equal(cam->up.toVector(), {0.2, -0.1, 0}));
+    ASSERT_EQ(7, cam->distanceImagePlane.get());
+    ASSERT_EQ(45, cam->fov.get());
+    ASSERT_EQ(0.3, cam->aspectRatio.get());
+}
+
+TEST(SceneParserCamera, advancedCameraDefaultParsing) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+   EXPECT_CALL(generator, Camera(::testing::_));
+   istringstream scene( "Camera {\n"
+    "    Type Advanced\n"
+    "    Name first_camera\n"
+    "}");
+    bool success = parser.ParseScene(scene);
+    ASSERT_TRUE(success);
+    SAdvancedCamera* cam = generator.GetAdvancedCamera();
+    EXPECT_TRUE(cam != nullptr);
+    
+    // Check defaults
+    ASSERT_EQ(1, cam->left.get());
+    ASSERT_EQ(1, cam->right.get());
+    ASSERT_EQ(1, cam->top.get());
+    ASSERT_EQ(1, cam->bottom.get());
+}
+
+TEST(SceneParserCamera, advancedCameraParsing) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+   EXPECT_CALL(generator, Camera(::testing::_));
+   istringstream scene( "Camera {\n"
+    "    Type Advanced\n"
+    "    Name first_camera\n"
+    "    left 2\n"
+    "    right 3\n"
+    "    top 4\n"
+    "    bottom 5\n"
+   "}");
+    bool success = parser.ParseScene(scene);
+    ASSERT_TRUE(success);
+    SAdvancedCamera* cam = generator.GetAdvancedCamera();
+    EXPECT_TRUE(cam != nullptr);
+    
+    // Check defaults
+    ASSERT_EQ(2, cam->left.get());
+    ASSERT_EQ(3, cam->right.get());
+    ASSERT_EQ(4, cam->top.get());
+    ASSERT_EQ(5, cam->bottom.get());
 }
 
 TEST(SceneParserCamera, testMissingRequiredKey) {
@@ -131,28 +197,27 @@ TEST(SceneParserCamera, testUnknownKeyword) {
 TEST(SceneParserMaterial, defaultMaterialParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SMaterial mat(SMaterial::BASIC,"");
-    EXPECT_CALL(generator, Material(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&mat), ::testing::Return(true)));
+    
+    EXPECT_CALL(generator, Material(::testing::_));
     bool success = parser.ParseScene("Material { Type basic Name foo }");
     ASSERT_TRUE(success);
-    
-    ASSERT_EQ(SMaterial::BASIC, mat.type());
-    ASSERT_STREQ("foo", mat.name().c_str());
+    SBasicMaterial* mat = generator.GetBasicMaterial();
+    EXPECT_TRUE(mat != nullptr);
+    ASSERT_EQ(SMaterial::BASIC, mat->type());
+    ASSERT_STREQ("foo", mat->name().c_str());
     
     // Check defaults
-    ASSERT_TRUE(equal(mat.emission.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(mat.ambient.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(mat.diffuse.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(mat.specular.toVector(), {0, 0, 0}));
-    ASSERT_EQ(0, mat.specularPower());
-    ASSERT_STREQ("", mat.texture().c_str());
+    ASSERT_TRUE(equal(mat->emission.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(mat->ambient.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(mat->diffuse.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(mat->specular.toVector(), {0, 0, 0}));
+    ASSERT_EQ(0, mat->specularPower());
 }
 
 TEST(SceneParserCamera, testMaterialParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SMaterial mat(SMaterial::BASIC, "");
-    EXPECT_CALL(generator, Material(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(&mat), ::testing::Return(true)));
+    EXPECT_CALL(generator, Material(::testing::_));
     istringstream scene( "Material {\n"
     "    Type Basic\n"
     "    Name first_material\n"
@@ -166,40 +231,41 @@ TEST(SceneParserCamera, testMaterialParsing) {
   
     bool success = parser.ParseScene(scene);
     ASSERT_TRUE(success);    
-    ASSERT_EQ(SMaterial::BASIC, mat.type.get());
-    ASSERT_STREQ("first_material", mat.name.get().c_str());
+    SBasicMaterial* mat = generator.GetBasicMaterial();
+    EXPECT_TRUE(mat != nullptr);
+    ASSERT_EQ(SMaterial::BASIC, mat->type.get());
+    ASSERT_STREQ("first_material", mat->name.get().c_str());
     
-    ASSERT_TRUE(equal(mat.emission.toVector(), {0.2, 0.3, 0.6}));
-    ASSERT_TRUE(equal(mat.ambient.toVector(), {0.3, 0.1, -0.7}));
-    ASSERT_TRUE(equal(mat.diffuse.toVector(), {0.2, -0.1, 0}));
-    ASSERT_TRUE(equal(mat.specular.toVector(), {0.2, -0.1, 0}));
-    ASSERT_EQ(7, mat.specularPower.get());
-    ASSERT_STREQ("foo", mat.texture().c_str());
+    ASSERT_TRUE(equal(mat->emission.toVector(), {0.2, 0.3, 0.6}));
+    ASSERT_TRUE(equal(mat->ambient.toVector(), {0.3, 0.1, -0.7}));
+    ASSERT_TRUE(equal(mat->diffuse.toVector(), {0.2, -0.1, 0}));
+    ASSERT_TRUE(equal(mat->specular.toVector(), {0.2, -0.1, 0}));
+    ASSERT_EQ(7, mat->specularPower.get());
+    ASSERT_STREQ("foo", mat->texture().c_str());
 }
 
 TEST(SceneParserLight, defaultPointLightParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SPointLight light("");
-    EXPECT_CALL(generator, Light(::testing::_)).WillOnce(::testing::DoAll(::testing::SaveArg<0>(static_cast<SLight*>(&light)), ::testing::Return(true)));
+    EXPECT_CALL(generator, Light(::testing::_));
     bool success = parser.ParseScene("Light { Type POINT Name foo }");
     ASSERT_TRUE(success);
-    
-    ASSERT_EQ(SLight::POINT, light.type());
-    ASSERT_STREQ("foo", light.name().c_str());
+    SPointLight* light = generator.GetPointLight();
+    EXPECT_TRUE(light != nullptr);
+    ASSERT_EQ(SLight::POINT, light->type());
+    ASSERT_STREQ("foo", light->name().c_str());
     
     // Check defaults
-    ASSERT_TRUE(equal(light.ambient.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light.diffuse.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light.specular.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light.position.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light.attenuationCoefs.toVector(), {1, 0, 0}));
+    ASSERT_TRUE(equal(light->ambient.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(light->diffuse.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(light->specular.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(light->position.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
 }
 
 TEST(SceneParserLight, testPointLightParsing) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    SLight l(SLight::POINT, "");
     EXPECT_CALL(generator, Light(::testing::_));
     bool success = parser.ParseScene("Light { "
     "Type POINT Name foo "

@@ -132,7 +132,7 @@ bool CSceneParser::parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties
 bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) { 
     SCamera* cam = nullptr;
    
-    std::set<std::string> validKeywords = {"name", "type", "eye_point", "look_point", "up", "distance_image_plane"};
+    std::set<std::string> validKeywords = {"name", "type", "eye_point", "look_point", "up", "distance_image_plane", "fov", "aspect_ratio", "top", "bottom", "left", "right"};
     if(!checkKeywords(properties, validKeywords)) throw ParserException("Camera: unknown keyword");
     
     if(properties.first() != "type") throw ParserException("Camera: TYPE field missing or not first in block");
@@ -156,7 +156,10 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
         ret = m_generator.Camera(*bc);
     } else if (type == SCamera::ADVANCED) {
         SAdvancedCamera* ac = static_cast<SAdvancedCamera*>(cam);
-        
+        if(properties.hasProperty("left")) ac->left.set(properties["left"].toDouble());
+        if(properties.hasProperty("right")) ac->right.set(properties["right"].toDouble());
+        if(properties.hasProperty("top")) ac->top.set(properties["top"].toDouble());        
+        if(properties.hasProperty("bottom")) ac->bottom.set(properties["bottom"].toDouble());
         ret = m_generator.Camera(*ac);
     }
 

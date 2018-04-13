@@ -14,6 +14,8 @@ struct SCamera {
         ADVANCED
     };
     SCamera(CameraType t, std::string n) : type(t), name(n) {}
+    SCamera(const SCamera& c) : type(c.type), name(c.name), eyePoint(c.eyePoint), lookPoint(c.lookPoint), up(c.up), distanceImagePlane(c.distanceImagePlane) {}
+
     CProperty<CameraType> type;
     CProperty<std::string> name;
     CProperty<double, 3> eyePoint = {{0, 0, -1}};
@@ -23,13 +25,15 @@ struct SCamera {
 };
 
 struct SBasicCamera : public SCamera {
-    SBasicCamera(std::string n) : SCamera(CameraType::BASIC, n) {}
+    SBasicCamera(std::string n) : SCamera(CameraType::BASIC, n) { }
+    SBasicCamera(const SBasicCamera& c) : SCamera(c), fov(c.fov), aspectRatio(c.aspectRatio) {}
     CProperty<double> fov = 90;
-    CProperty<double> aspectRatio = 4/3;
+    CProperty<double> aspectRatio = 4.0/3.0;
 };
 
 struct SAdvancedCamera : public SCamera {
     SAdvancedCamera(std::string n) : SCamera(CameraType::ADVANCED, n) {}
+    SAdvancedCamera(const SAdvancedCamera& c): SCamera(c), left(c.left), right(c.right), top(c.top), bottom(c.bottom) {}
     CProperty<double> left = 1;
     CProperty<double> right = 1;
     CProperty<double> top = 1;
@@ -41,6 +45,15 @@ struct SMaterial {
         BASIC
     };
     SMaterial(MaterialType t, std::string n) : type(t), name(n) {}
+    SMaterial(const SMaterial& mat) :
+        type(mat.type), 
+        name(mat.name), 
+        emission(mat.emission), 
+        ambient(mat.ambient), 
+        diffuse(mat.diffuse), 
+        specular(mat.specular),
+        specularPower(mat.specularPower),
+        texture(mat.texture) {}
     CProperty<MaterialType> type;
     CProperty<std::string> name;
     CProperty<double, 3> emission = {{0, 0, 0}};
@@ -49,6 +62,11 @@ struct SMaterial {
     CProperty<double, 3> specular = {{0, 0, 0}};
     CProperty<double> specularPower = 0;
     CProperty<std::string> texture;
+};
+
+struct SBasicMaterial : public SMaterial {
+    SBasicMaterial(std::string n) : SMaterial(SMaterial::BASIC, n) {}
+    SBasicMaterial(const SBasicMaterial& mat) : SMaterial(mat) {}
 };
 
 struct SLight {
@@ -68,6 +86,7 @@ struct SLight {
 
 struct SPointLight : public SLight {
     SPointLight(std::string n) : SLight(SLight::POINT, n) {};
+    SPointLight(const SPointLight& l) : SLight(l), position(l.position), attenuationCoefs(l.attenuationCoefs) {}
     CProperty<double, 3> position = {{0, 0, 0}};
     CProperty<double, 3> attenuationCoefs = {{1, 0, 0}};
 };
