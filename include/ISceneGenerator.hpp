@@ -104,6 +104,7 @@ struct SGeometry {
         SPHERE
     };
     SGeometry(GeometryType t, std::string n) : type(t), name(n) {}
+    SGeometry(const SGeometry& g): type(g.type), name(g.name) {}
     CProperty<GeometryType> type;
     CProperty<std::string> name;
 };
@@ -120,8 +121,16 @@ struct SVertex {
 
 struct SMesh : public SGeometry {
     SMesh(std::string n) : SGeometry(SGeometry::MESH, n) {}
+    SMesh(const SMesh& mesh) : SGeometry(mesh), vertices(mesh.vertices), tri(mesh.tri) {}
     CProperty<SVertex> vertices;
     CProperty<double, 3> tri;
+};
+
+struct SObject {
+    SObject(std::string geom, std::string mat) : geometry(geom), material(mat) {}
+    CProperty<std::string> name;
+    CProperty<std::string> geometry;
+    CProperty<std::string> material;
 };
 
 class ISceneGenerator {
@@ -131,6 +140,7 @@ public:
     virtual bool Material(SMaterial& mat) = 0;
     virtual bool Light(SLight& light) = 0;
     virtual bool Geometry(SGeometry& geometry) = 0;
+    virtual bool Object(SObject& obj) = 0;
 
 private:
 

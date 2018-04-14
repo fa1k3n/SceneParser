@@ -30,8 +30,11 @@ bool CSceneParser::ParseScene(std::istream& scene) {
         }  else if(keyw == "geometry") {
             readBlock(tokenizer, properties); 
             if(!parseGeometry(tokenizer, properties)) return false;
+        }  else if(keyw == "object") {
+            readBlock(tokenizer, properties); 
+            if(!parseObject(tokenizer, properties)) return false;
         }
-    }
+    } else throw ParserException("Unknown keyword");
 
     return true;
 }
@@ -43,17 +46,31 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
         while((type = tokenizer.peekNextToken()) != SToken::NONE)  {
             switch(type) {
                 case SToken::SYM:
-                    if(getSymToken(tokenizer)->str != "}")
-                        throw ParserException("GENERAL: Unclosed block");
+                    if((getSymToken(tokenizer)->str != "}")) {
+                        //CPropertyMap pm;
+                        //readBlock(tokenizer, pm);
+                        return false;
+                    }
+                    
                     return true;     // Block closed hopefully
                     break;
-                    
+               
+                // The Object keyword contains geometry and material keywords as
+                // properties, need to read them here
+                case SToken::KEYWORD:
+                {
+                    auto name = getKeywordToken(tokenizer)->str;
+                    SPropertyValue prop;
+                    readPropertyValue(tokenizer, prop);
+                    map[name] =  prop;
+                }
+                 break;
                 case SToken::ID:
                 {
                     auto name = getIdToken(tokenizer)->str;
                     SPropertyValue prop;
                     readPropertyValue(tokenizer, prop);
-                    map[name] = prop;
+                    map[name] =  prop;
                 }
                  break;
                       
@@ -73,8 +90,23 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
         // Glob all consts
         while( tokenizer.peekNextToken() == SToken::CONST) 
             val << getConstToken(tokenizer)->val;
-    } 
+    } else if (nextTok == SToken::SYM) {
+         while( tokenizer.peekNextToken() == SToken::SYM) {
+             CPropertyMap pm;
+             readBlock(tokenizer, pm);
+             val <<  pm;
+         } 
+    }
     return true;
+}
+
+bool CSceneParser::parseObject(CTokenizer& tokenizer, CPropertyMap& properties) {
+    if(!properties.hasProperty("geometry")) throw ParserException("Object: Missing required field GEOMETRY");
+    if(!properties.hasProperty("material")) throw ParserException("Object: Missing required field MATERIAL");
+    SObject obj(properties["geometry"].toStr(), properties["material"].toStr());
+    if(properties.hasProperty("name")) obj.name.set(properties["name"].toStr());
+    
+    return m_generator.Object(obj);
 }
 
 bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
@@ -170,10 +202,11 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
     return ret;
 }
 
+#include <iostream>
 bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties) {
      SGeometry* geom = nullptr;
    
-    std::set<std::string> validKeywords = {"name", "type"};
+    std::set<std::string> validKeywords = {"name", "type", "vertices", "tri"};
     if(!checkKeywords(properties, validKeywords)) throw ParserException("Geometry: unknown keyword");
     
     if(properties.first() != "type") throw ParserException("Geometry: TYPE field missing or not first in block");
@@ -184,9 +217,23 @@ bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties
     else if(properties["type"].toStr() == "mesh") type = SGeometry::MESH;
     
     if(type == SGeometry::SPHERE) geom = new SSphere( properties["name"].toStr()) ;
+    else if(type == SGeometry::MESH) geom = new SMesh(properties["name"].toStr());
     else throw ParserException("Geometry: unknown geometry");
 
-    bool ret = m_generator.Geometry(*geom);
+    bool ret = false;
+      if(type == SGeometry::MESH) {
+        SMesh* mesh = static_cast<SMesh*>(geom);
+        if(properties.hasProperty("tri")) mesh->tri.set(properties["tri"].toDoubleList());
+        if(properties.hasProperty("vertices")) {
+            // BUGFROM HERE
+            std::vector<SVertex> vertices;
+            vertices.push_back({-1, 1, 0});     
+           mesh->vertices.set(vertices);
+        }
+        ret = m_generator.Geometry(*mesh);
+        
+    } else
+        ret = m_generator.Geometry(*geom);
     delete geom;
     return ret;
 }

@@ -129,6 +129,12 @@ struct SPropertyValue {
             throw ImplicitTypeConversion("Trying to read a map from non-map property" );
         return *m_map[index];
     }
+    
+    std::vector<CPropertyMap*> toMapList() {
+        if(type != MAP && type != MAP_LIST)
+            throw ImplicitTypeConversion("Trying to read a map from non-map property" );
+        return m_map;
+    }
     ValueType type;
     
 private:

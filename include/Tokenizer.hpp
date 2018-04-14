@@ -60,7 +60,8 @@ private:
         "camera",
         "material",
         "light",
-        "geometry"
+        "geometry",
+        "object"
     };
 };
 

@@ -13,18 +13,21 @@ public:
     MOCK_METHOD1(Material, bool(SMaterial&));
     MOCK_METHOD1(Light, bool(SLight&));
     MOCK_METHOD1(Geometry, bool(SGeometry&));
+    MOCK_METHOD1(Object, bool(SObject&));
 
     TestSceneGenerator() {
         ON_CALL(*this, Light(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveLight));
         ON_CALL(*this, Camera(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveCamera));
         ON_CALL(*this, Material(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveMaterial));
         ON_CALL(*this, Geometry(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveGeometry));
+        ON_CALL(*this, Object(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveObject));
     }
      ~TestSceneGenerator() {
          if(light) delete light;
          if(material) delete material;
          if(camera) delete camera;
          if(geometry) delete geometry;
+         if(object) delete object;
      }
      
     bool SaveLight(SLight& l) { 
@@ -38,6 +41,11 @@ public:
         return true;
     }
     
+    bool SaveObject(SObject& obj) {
+        object = new SObject(obj);
+        return true;
+    }
+    
     bool SaveCamera(SCamera& cam) {
          if(cam.type() == SCamera::BASIC) camera = new SBasicCamera(*static_cast<SBasicCamera*>(&cam));
          else if(cam.type() == SCamera::ADVANCED) camera = new SAdvancedCamera(*static_cast<SAdvancedCamera*>(&cam));
@@ -46,6 +54,7 @@ public:
     
     bool SaveGeometry(SGeometry& geom) {
         if(geom.type() == SGeometry::SPHERE) geometry = new SSphere(*static_cast<SSphere*>(&geom));
+        else if(geom.type() == SGeometry::MESH) geometry = new SMesh(*static_cast<SMesh*>(&geom));
         return true;
     }
     
@@ -58,11 +67,15 @@ public:
     SBasicMaterial* GetBasicMaterial() { return static_cast<SBasicMaterial*>(material); }
 
     SSphere* GetSphere() { return static_cast<SSphere*>(geometry); }
+    SMesh* GetMesh() { return static_cast<SMesh*>(geometry); }
     
+    SObject* GetObject() { return object; }
+
     SLight* light = nullptr; 
     SMaterial* material = nullptr;
     SCamera* camera = nullptr;
     SGeometry* geometry = nullptr;
+    SObject* object = nullptr;
 };
 
 TEST(SceneParser, testConstructor) {
@@ -202,7 +215,7 @@ TEST(SceneParserCamera, testArrayMissmatch) {
 TEST(SceneParserCamera, testUnknownKeyword) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  unknown_keyw }"), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  unknown_key foo }"), ParserException);
 }
 
 TEST(SceneParserMaterial, defaultMaterialParsing) {
@@ -334,7 +347,7 @@ TEST(SceneParserLight, unknownLightTypeWillThrow) {
     EXPECT_THROW(parser.ParseScene("Light { Type unknown Name foo }"), ParserException);
 }
 
-TEST(SceneParserGeometry, defaultGeometry) {
+TEST(SceneParserGeometry, sphereGeometry) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     EXPECT_CALL(generator, Geometry(::testing::_));
@@ -342,4 +355,30 @@ TEST(SceneParserGeometry, defaultGeometry) {
     ASSERT_TRUE(success);
     SSphere* sphere = generator.GetSphere();
     EXPECT_TRUE(sphere != nullptr);
+}
+
+TEST(SceneParserGeometry, meshGeometry) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    EXPECT_CALL(generator, Geometry(::testing::_));
+    bool success = parser.ParseScene("Geometry { type mesh name foo "
+    "vertices { p -1 1 0 N 0 0 1 tc 0 0 0 } { p -1 1 0 N 0 0 1 tc 0 0 0 } { p -1 1 0 N 0 0 1 tc 0 0 0 } \n"
+    "tri 0 1 2 }");
+    ASSERT_TRUE(success);
+    SMesh* mesh = generator.GetMesh();
+    EXPECT_TRUE(mesh != nullptr);
+    ASSERT_TRUE(equal(mesh->tri.toVector(), {0, 1, 2}));
+}
+
+TEST(SceneParserGeometry, objectInstance) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    EXPECT_CALL(generator, Object(::testing::_));
+    bool success = parser.ParseScene("object { geometry foo material bar }");
+    ASSERT_TRUE(success);
+    SObject* obj = generator.GetObject();
+    EXPECT_TRUE(obj != nullptr);
+    ASSERT_STREQ("foo", obj->geometry().c_str());
+    ASSERT_STREQ("bar", obj->material().c_str());
+
 }
