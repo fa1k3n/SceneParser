@@ -14,6 +14,7 @@ public:
     MOCK_METHOD1(Light, bool(SLight&));
     MOCK_METHOD1(Geometry, bool(SGeometry&));
     MOCK_METHOD1(Object, bool(SObject&));
+    MOCK_METHOD1(Misc, bool(SMisc&));
 
     TestSceneGenerator() {
         ON_CALL(*this, Light(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveLight));
@@ -381,4 +382,11 @@ TEST(SceneParserGeometry, objectInstance) {
     ASSERT_STREQ("foo", obj->geometry().c_str());
     ASSERT_STREQ("bar", obj->material().c_str());
 
+}
+
+TEST(SceneParserGeometry, miscBlock) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    EXPECT_CALL(generator, Misc(::testing::_));
+    bool success = parser.ParseScene("Misc { }");
 }

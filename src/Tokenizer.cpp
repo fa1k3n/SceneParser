@@ -80,6 +80,13 @@ bool CTokenizer::tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok
         *tok =  std::unique_ptr<SSymToken>(new SSymToken(lexeme));
     else if(isKeyword(lexeme)) {
         *tok =  std::unique_ptr<SKeywordToken>(new SKeywordToken(lexeme));
+    } else if(isTransform(lexeme)) {
+        std::string val = lexeme;
+        if(lexeme == "push_transform") val = "push";
+        else if(lexeme == "pop_transform") val = "pop";
+        else if(lexeme == "load_identity") val = "load";
+
+        *tok =  std::unique_ptr<STransformToken>(new STransformToken( val));
     } else
         *tok =  std::unique_ptr<SIdToken>(new SIdToken(lexeme));
     return true;
@@ -87,7 +94,10 @@ bool CTokenizer::tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok
 
 bool CTokenizer::isKeyword(std::string lexeme) {
     return std::find(keywords.begin(), keywords.end(), lexeme) != keywords.end();
-    //return lexeme == "camera";
+}
+
+bool CTokenizer::isTransform(std::string lexeme) {
+    return std::find(transforms.begin(), transforms.end(), lexeme) != transforms.end();
 }
 
 CTokenizer::~CTokenizer() {

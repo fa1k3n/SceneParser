@@ -133,6 +133,8 @@ struct SObject {
     CProperty<std::string> material;
 };
 
+struct SMisc {};
+
 class ISceneGenerator {
 public:
     virtual ~ISceneGenerator() {}
@@ -141,6 +143,7 @@ public:
     virtual bool Light(SLight& light) = 0;
     virtual bool Geometry(SGeometry& geometry) = 0;
     virtual bool Object(SObject& obj) = 0;
+    virtual bool Misc(SMisc& misc) = 0;
 
 private:
 

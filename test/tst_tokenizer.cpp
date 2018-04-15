@@ -38,6 +38,15 @@ TEST(Tokenizer, basicConst) {
     }
 }
 
+TEST(Tokenizer, basicTransform) {
+    CTokenizer tokenizer("push_transform");
+    std::unique_ptr<SToken> tok;
+    tokenizer.getNextToken(&tok);
+    ASSERT_TRUE(tok->type == SToken::TRANSF);        
+    auto tt = static_cast<STransformToken*>(tok.get());
+    ASSERT_STREQ("push", tt->str.c_str());
+}
+
 TEST(Tokenizer, basicStream) {
     std::string str = "baz";
     std::istringstream tokstream(str);

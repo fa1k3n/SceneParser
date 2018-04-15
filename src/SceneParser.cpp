@@ -33,6 +33,9 @@ bool CSceneParser::ParseScene(std::istream& scene) {
         }  else if(keyw == "object") {
             readBlock(tokenizer, properties); 
             if(!parseObject(tokenizer, properties)) return false;
+        }   else if(keyw == "misc") {
+            readBlock(tokenizer, properties); 
+            if(!parseMisc(tokenizer, properties)) return false;
         }
     } else throw ParserException("Unknown keyword");
 
@@ -98,6 +101,11 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
          } 
     }
     return true;
+}
+
+bool CSceneParser::parseMisc(CTokenizer& tokenizer, CPropertyMap& properties) {
+    SMisc misc;
+    return m_generator.Misc(misc);
 }
 
 bool CSceneParser::parseObject(CTokenizer& tokenizer, CPropertyMap& properties) {

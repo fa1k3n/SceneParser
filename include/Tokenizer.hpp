@@ -15,7 +15,8 @@ struct SToken {
         KEYWORD,
         ID,
         CONST,
-        SYM
+        SYM,
+        TRANSF
     };
     SToken(TokenType tt = NONE) : type(tt) {}
     TokenType type;
@@ -41,6 +42,11 @@ struct SConstToken : public SToken {
     double val;
 };
 
+struct STransformToken: public SToken {
+    STransformToken(std::string value) : SToken(SToken::TRANSF), str(value) {};
+    std::string str;
+};
+
 class CTokenizer {
 public:
     CTokenizer(std::string const &tokstr);
@@ -53,6 +59,7 @@ private:
     bool skipComment(std::istream& tokstream);
     bool tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok);
     bool isKeyword(std::string lexeme);
+    bool isTransform(std::string lexeme);
 
     std::list<std::string> m_lexemes;
     
@@ -61,8 +68,20 @@ private:
         "material",
         "light",
         "geometry",
-        "object"
+        "object",
+        "misc"
+    };   
+    
+    std::list<std::string> transforms = {
+        "push_transform",
+        "pop_transform",
+        "load_identity",
+        "translate",
+        "rotate",
+        "scale",
+        "transform"
     };
+
 };
 
 #endif /* CTOKENIZER_HPP */
