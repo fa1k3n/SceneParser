@@ -388,5 +388,14 @@ TEST(SceneParserGeometry, miscBlock) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     EXPECT_CALL(generator, Misc(::testing::_));
-    bool success = parser.ParseScene("Misc { }");
+    bool success = parser.ParseScene("Misc { }");    
 }
+
+/*
+TEST(SceneTransform, basicTransf) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    bool success = parser.ParseScene("push_matrix");    
+    ASSERT_TRUE(success);
+}
+*/

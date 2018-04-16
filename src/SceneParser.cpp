@@ -37,6 +37,8 @@ bool CSceneParser::ParseScene(std::istream& scene) {
             readBlock(tokenizer, properties); 
             if(!parseMisc(tokenizer, properties)) return false;
         }
+    } else if(type == SToken::TRANSF) {
+        return true;
     } else throw ParserException("Unknown keyword");
 
     return true;
