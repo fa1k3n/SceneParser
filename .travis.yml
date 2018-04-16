@@ -13,4 +13,5 @@ script:
     - cmake -DCOVERAGE=1 ..
     - make && make build-tests && make test
 after_success:
+    - cd ..
     - coveralls --root . -e build/test -e test -E ".*gtest.*" -E ".*CMakeFiles.*" 
