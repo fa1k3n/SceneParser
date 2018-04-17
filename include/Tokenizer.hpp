@@ -18,7 +18,22 @@ struct SToken {
         SYM,
         TRANSF
     };
+    
+    std::string TokenStrings[TRANSF + 1] = {
+        "NONE",
+        "KEYWORD",
+         "ID",
+        "CONST",
+        "SYM",
+        "TRANSF"
+    };
+   
     SToken(TokenType tt = NONE) : type(tt) {}
+    
+    static const char* toStr(TokenType t) {
+        return "";
+    }
+    
     TokenType type;
 };
 
@@ -42,9 +57,19 @@ struct SConstToken : public SToken {
     double val;
 };
 
-struct STransformToken: public SToken {
-    STransformToken(std::string value) : SToken(SToken::TRANSF), str(value) {};
-    std::string str;
+struct STransfToken: public SToken {
+    enum TransfTypeID {
+        PUSH,
+        POP,
+        LOAD,
+        TRANSLATE,
+        ROTATE,
+        SCALE,
+        TRANSFORM
+    };
+    
+    STransfToken(TransfTypeID ttid) : SToken(SToken::TRANSF), id(ttid) {};
+    TransfTypeID id;
 };
 
 class CTokenizer {
@@ -54,6 +79,7 @@ public:
     virtual ~CTokenizer();
     bool getNextToken(std::unique_ptr<SToken>* tok);
     SToken::TokenType peekNextToken();
+    bool hasMoreTokens() { return m_lexemes.size(); }
 private:
     void getLexemesFromStream(std::istream& tokstream);
     bool skipComment(std::istream& tokstream);

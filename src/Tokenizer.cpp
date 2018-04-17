@@ -65,31 +65,36 @@ bool CTokenizer::getNextToken(std::unique_ptr<SToken>* tok) {
     auto value = m_lexemes.front(); 
     std::unique_ptr<SToken> tok;
     if(!tokenizeLexeme(value, &tok)) return SToken::TokenType::NONE;
-    return tok.get()->type;
+    auto type =  tok.get()->type;
+    return type;
 }
 
 bool CTokenizer::tokenizeLexeme(std::string lexeme, std::unique_ptr<SToken>* tok) {
-    // Try to convert to double
-    try {
-        double val = std::stod(lexeme);
-        *tok = std::unique_ptr<SConstToken>(new SConstToken(val));
-        return true;
-    } catch (std::invalid_argument& ) {}
     
     if(lexeme == "{" || lexeme == "}")
         *tok =  std::unique_ptr<SSymToken>(new SSymToken(lexeme));
     else if(isKeyword(lexeme)) {
         *tok =  std::unique_ptr<SKeywordToken>(new SKeywordToken(lexeme));
     } else if(isTransform(lexeme)) {
-        std::string val = lexeme;
-        if(lexeme == "push_transform") val = "push";
-        else if(lexeme == "pop_transform") val = "pop";
-        else if(lexeme == "load_identity") val = "load";
-
-        *tok =  std::unique_ptr<STransformToken>(new STransformToken( val));
-    } else
+        STransfToken::TransfTypeID type;
+        if(lexeme == "push_transform") type = STransfToken::PUSH;
+        else if(lexeme == "pop_transform") type = STransfToken::POP;
+        else if(lexeme == "load_identity") type = STransfToken::LOAD;
+        else if(lexeme == "translate") type = STransfToken::TRANSLATE;
+        else if(lexeme == "rotate") type = STransfToken::ROTATE;
+        else if(lexeme == "scale") type = STransfToken::SCALE;
+        else if(lexeme == "transform") type = STransfToken::TRANSFORM;
+        *tok =  std::unique_ptr<STransfToken>(new STransfToken(type));
+    } else {
+            // Try to convert to double
+         try {
+             double val = std::stod(lexeme);
+             *tok = std::unique_ptr<SConstToken>(new SConstToken(val));
+             return true;
+         } catch (std::invalid_argument& ) {}
         *tok =  std::unique_ptr<SIdToken>(new SIdToken(lexeme));
-    return true;
+    }
+        return true;
 }
 
 bool CTokenizer::isKeyword(std::string lexeme) {

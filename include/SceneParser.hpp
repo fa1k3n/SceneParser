@@ -26,7 +26,9 @@ private:
     SSymToken* getSymToken(CTokenizer& tokenizer);
     SConstToken* getConstToken(CTokenizer& tokenizer);
     SIdToken* getIdToken(CTokenizer& tokenizer);
+    STransfToken* getTransfToken(CTokenizer& tokenizer);
 
+    bool handleTransf(CTokenizer& tokenizer);
 
     bool readBlock(CTokenizer& tokenizer, CPropertyMap& pairs);
     bool readPropertyValue(CTokenizer& tokenizer, SPropertyValue& prop);

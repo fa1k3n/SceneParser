@@ -14,33 +14,55 @@ bool CSceneParser::ParseScene(std::string scene) {
 
 bool CSceneParser::ParseScene(std::istream& scene) {
     CTokenizer tokenizer(scene);
-    SToken::TokenType type = tokenizer.peekNextToken();
-    if(type == SToken::KEYWORD) {
-        CPropertyMap properties;
-        auto keyw = getKeywordToken(tokenizer)->str;
-        if(keyw == "camera") {
-            readBlock(tokenizer, properties); 
-            if(!parseCamera(tokenizer, properties)) return false;
-        } else if(keyw == "material") {
-            readBlock(tokenizer, properties); 
-            if(!parseMaterial(tokenizer, properties)) return false;
-        }  else if(keyw == "light") {
-            readBlock(tokenizer, properties); 
-            if(!parseLight(tokenizer, properties)) return false;
-        }  else if(keyw == "geometry") {
-            readBlock(tokenizer, properties); 
-            if(!parseGeometry(tokenizer, properties)) return false;
-        }  else if(keyw == "object") {
-            readBlock(tokenizer, properties); 
-            if(!parseObject(tokenizer, properties)) return false;
-        }   else if(keyw == "misc") {
-            readBlock(tokenizer, properties); 
-            if(!parseMisc(tokenizer, properties)) return false;
-        }
-    } else if(type == SToken::TRANSF) {
-        return true;
-    } else throw ParserException("Unknown keyword");
+    while(tokenizer.hasMoreTokens()) {
+        SToken::TokenType type = tokenizer.peekNextToken();
 
+        if(type == SToken::KEYWORD) {
+            CPropertyMap properties;
+            auto keyw = getKeywordToken(tokenizer)->str;
+            if(keyw == "camera") {
+                readBlock(tokenizer, properties); 
+                if(!parseCamera(tokenizer, properties)) return false;
+            } else if(keyw == "material") {
+                readBlock(tokenizer, properties); 
+                if(!parseMaterial(tokenizer, properties)) return false;
+            }  else if(keyw == "light") {
+                readBlock(tokenizer, properties); 
+                if(!parseLight(tokenizer, properties)) return false;
+            }  else if(keyw == "geometry") {
+                readBlock(tokenizer, properties); 
+                if(!parseGeometry(tokenizer, properties)) return false;
+            }  else if(keyw == "object") {
+                readBlock(tokenizer, properties); 
+                if(!parseObject(tokenizer, properties)) return false;
+            }   else if(keyw == "misc") {
+                readBlock(tokenizer, properties); 
+                if(!parseMisc(tokenizer, properties)) return false;
+            }
+        } else if(type == SToken::TRANSF) {
+            handleTransf(tokenizer);
+        } else throw ParserException("Unexpected token of type %s",  SToken::toStr(type));
+   }
+    return true;
+}
+
+bool CSceneParser::handleTransf(CTokenizer& tokenizer) {
+    STransfToken::TransfTypeID id = getTransfToken(tokenizer)->id;
+    switch(id) {
+        case STransfToken::PUSH:
+        break;
+        case STransfToken::TRANSLATE:
+        {
+            // There should be exactly three CONST tokens
+            getConstToken(tokenizer);
+            getConstToken(tokenizer);
+            getConstToken(tokenizer);
+        }
+        break;
+        
+        default:
+            throw ParserException("Unknown transform");
+    }
     return true;
 }
 
@@ -212,7 +234,6 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
     return ret;
 }
 
-#include <iostream>
 bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties) {
      SGeometry* geom = nullptr;
    
@@ -280,4 +301,11 @@ SIdToken* CSceneParser::getIdToken(CTokenizer& tokenizer) {
     tokenizer.getNextToken(&tok);
     if(tok->type != SToken::ID) return nullptr;
     return static_cast<SIdToken*>(tok.get());
+}
+    
+STransfToken* CSceneParser::getTransfToken(CTokenizer& tokenizer) {
+    std::unique_ptr<SToken> tok;
+    tokenizer.getNextToken(&tok);
+    if(tok->type != SToken::TRANSF) return nullptr;
+    return static_cast<STransfToken*>(tok.get());
 }

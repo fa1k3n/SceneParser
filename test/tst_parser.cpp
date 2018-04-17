@@ -22,6 +22,7 @@ public:
         ON_CALL(*this, Material(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveMaterial));
         ON_CALL(*this, Geometry(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveGeometry));
         ON_CALL(*this, Object(::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveObject));
+        ON_CALL(*this, Misc(::testing::_)).WillByDefault(::testing::Return(true));
     }
      ~TestSceneGenerator() {
          if(light) delete light;
@@ -127,7 +128,7 @@ TEST(SceneParserCamera, testCameraParsing) {
     "    Distance_image_plane 7 \n"
     "    fov 45  \n"
     "    aspect_ratio 0.3 \n"
-    " }\n");
+    " }");
   
     bool success = parser.ParseScene(scene);
     ASSERT_TRUE(success);    
@@ -252,7 +253,7 @@ TEST(SceneParserCamera, testMaterialParsing) {
     "    specular 0.2 -0.1 0 \n"
     "    specular_power 7 \n"
     "    texture foo \n"
-    " }\n");
+    " }");
   
     bool success = parser.ParseScene(scene);
     ASSERT_TRUE(success);    
@@ -375,10 +376,11 @@ TEST(SceneParserGeometry, objectInstance) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     EXPECT_CALL(generator, Object(::testing::_));
-    bool success = parser.ParseScene("object { geometry foo material bar }");
+    bool success = parser.ParseScene("object { name obj geometry foo material bar }");
     ASSERT_TRUE(success);
     SObject* obj = generator.GetObject();
     EXPECT_TRUE(obj != nullptr);
+    ASSERT_STREQ("obj", obj->name().c_str());
     ASSERT_STREQ("foo", obj->geometry().c_str());
     ASSERT_STREQ("bar", obj->material().c_str());
 
@@ -389,13 +391,23 @@ TEST(SceneParserGeometry, miscBlock) {
     CSceneParser parser(generator);
     EXPECT_CALL(generator, Misc(::testing::_));
     bool success = parser.ParseScene("Misc { }");    
+    ASSERT_TRUE(success);
 }
 
-/*
 TEST(SceneTransform, basicTransf) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    bool success = parser.ParseScene("push_matrix");    
+    bool success = parser.ParseScene("push_transform");    
     ASSERT_TRUE(success);
 }
-*/
+
+TEST(SceneTransform, basicTranslateTransf) {
+    TestSceneGenerator generator;
+    CSceneParser parser(generator);
+    EXPECT_CALL(generator, Object(::testing::_));
+
+    bool success = parser.ParseScene("translate 2 2 2 object { name obj geometry foo material bar } ");    
+    ASSERT_TRUE(success);
+    SObject* obj = generator.GetObject();
+    EXPECT_TRUE(obj != nullptr);
+}

@@ -43,8 +43,17 @@ TEST(Tokenizer, basicTransform) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
     ASSERT_TRUE(tok->type == SToken::TRANSF);        
-    auto tt = static_cast<STransformToken*>(tok.get());
-    ASSERT_STREQ("push", tt->str.c_str());
+    auto tt = static_cast<STransfToken*>(tok.get());
+    ASSERT_EQ(STransfToken::PUSH, tt->id);
+}
+
+TEST(Tokenizer, basicTranslateTransform) {
+    CTokenizer tokenizer("translate 2 2 2");
+    std::unique_ptr<SToken> tok;
+    tokenizer.getNextToken(&tok);
+    ASSERT_TRUE(tok->type == SToken::TRANSF);        
+    auto tt = static_cast<STransfToken*>(tok.get());
+    ASSERT_EQ(STransfToken::TRANSLATE, tt->id);
 }
 
 TEST(Tokenizer, basicStream) {

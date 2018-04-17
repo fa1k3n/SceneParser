@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <exception>
+#include <cstdarg>
 
 struct ImplicitTypeConversion : public std::exception {
     ImplicitTypeConversion(std::string msg) : exception() , m_msg(msg) {}
@@ -26,7 +27,14 @@ struct NonExistingProperty : public std::exception {
 };
 
 struct ParserException : public std::exception {
-    ParserException(std::string msg) : exception(), m_msg(msg) {}
+    ParserException(const char*  msg, ...) : exception(), m_msg(msg) {
+        va_list args;
+        va_start(args, msg);
+        char tmp[500];
+        sprintf(tmp, msg, args);
+        m_msg = tmp;
+    }
+    
     const char* what() const throw() {
         return m_msg.c_str();
     }
