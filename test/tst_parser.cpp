@@ -24,7 +24,7 @@ public:
         ON_CALL(*this, Material(::testing::_, ::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveMaterial));
         ON_CALL(*this, Geometry(::testing::_, ::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveGeometry));
         ON_CALL(*this, Object(::testing::_, ::testing::_)).WillByDefault(::testing::Invoke(this, &TestSceneGenerator::SaveObject));
-        ON_CALL(*this, Misc(::testing::_, ::testing::_)).WillByDefault(::testing::Return(true));
+        ON_CALL(*this, Misc(::testing::_, ::testing::_)).WillByDefault(Invoke(this, &TestSceneGenerator::SaveMisc));
     }
      ~TestSceneGenerator() {
          if(light) delete light;
@@ -62,6 +62,11 @@ public:
         return true;
     }
     
+    bool SaveMisc(SMisc& misc, Matrix4d& m) {
+        transform = m;
+        return true;
+    }
+    
     SDirectionalLight* GetDirectionalLight() { return static_cast<SDirectionalLight*>(light); }
     SPointLight* GetPointLight() { return static_cast<SPointLight*>(light);}
     
@@ -74,12 +79,15 @@ public:
     SMesh* GetMesh() { return static_cast<SMesh*>(geometry); }
     
     SObject* GetObject() { return object; }
+    
+    Matrix4d GetTransform() { return transform; }
 
     SLight* light = nullptr; 
     SMaterial* material = nullptr;
     SCamera* camera = nullptr;
     SGeometry* geometry = nullptr;
     SObject* object = nullptr;
+    Matrix4d transform;
 };
 
 TEST(SceneParser, testConstructor) {
@@ -403,12 +411,49 @@ TEST(SceneTransform, basicTransf) {
 }
 
 TEST(SceneTransform, basicTranslateTransf) {
-    TestSceneGenerator generator;
+   NiceMock< TestSceneGenerator> generator;
     CSceneParser parser(generator);
-    EXPECT_CALL(generator, Object(_, _));
 
-    bool success = parser.ParseScene("translate 2 2 2 object { name obj geometry foo material bar } ");    
+    Matrix4d tmp;
+    tmp << 1, 0, 0, 2,
+                   0, 1, 0, 3,
+                   0, 0, 1, 4,
+                   0, 0, 0, 1;
+
+    bool success = parser.ParseScene("translate 2 3 4 misc { } ");    
     ASSERT_TRUE(success);
-    SObject* obj = generator.GetObject();
-    EXPECT_TRUE(obj != nullptr);
+    auto mat = generator.GetTransform();
+    ASSERT_TRUE(mat.isApprox(tmp));
+}
+
+TEST(SceneTransform, basicScaleTransf) {
+   NiceMock< TestSceneGenerator> generator;
+    CSceneParser parser(generator);
+
+    Matrix4d tmp;
+    tmp << 2, 0, 0, 0,
+                   0, 3, 0, 0,
+                   0, 0, 4, 0,
+                   0, 0, 0, 1;
+
+    bool success = parser.ParseScene("scale 2 3 4 misc { } ");    
+    ASSERT_TRUE(success);
+    auto mat = generator.GetTransform();
+    ASSERT_TRUE(mat.isApprox(tmp));
+}
+
+TEST(SceneTransform, basicRotateTransf) {
+   NiceMock< TestSceneGenerator> generator;
+    CSceneParser parser(generator);
+
+    Matrix4d tmp;
+    tmp << 0, -1, 0, 0,
+                   1, 0, 0, 0,
+                   0, 0, 1, 0,
+                   0, 0, 0, 1;
+
+    bool success = parser.ParseScene("rotate 0 0 1 90  misc { } ");    
+    ASSERT_TRUE(success);
+    auto mat = generator.GetTransform();
+    ASSERT_TRUE(mat.isApprox(tmp));
 }

@@ -2,15 +2,14 @@
 #include <Tokenizer.hpp>
 #include <sstream>
 #include <set>
+#include <Eigen/Geometry>
+#include <math.h>
 
 CSceneParser::CSceneParser(ISceneGenerator& generator) : 
     m_generator(generator) 
 {
     //Create unit transform
-    m_currentTransform << 1, 0, 0, 0,
-                                               0, 1, 0, 0,
-                                               0, 0, 1, 0,
-                                               0, 0, 0, 1;
+    m_currentTransform = Matrix4d::Identity();
 }
 
 bool CSceneParser::ParseScene(std::string scene) {
@@ -59,13 +58,26 @@ bool CSceneParser::handleTransf(CTokenizer& tokenizer) {
         break;
         case STransfToken::TRANSLATE:
         {
-            // There should be exactly three CONST tokens
-            getConstToken(tokenizer);
-            getConstToken(tokenizer);
-            getConstToken(tokenizer);
+            std::vector<double> vals;
+            readConstVect<3>(tokenizer, vals);
+            m_currentTransform *=  Eigen::Affine3d(Eigen::Translation3d(vals[0], vals[1], vals[2])).matrix();
         }
         break;
-        
+        case STransfToken::SCALE:
+        {
+            std::vector<double> vals;
+            readConstVect<3>(tokenizer, vals);
+            m_currentTransform *=  Eigen::Affine3d(Eigen::Scaling(vals[0], vals[1], vals[2])).matrix();
+        }
+        break;
+        case STransfToken::ROTATE:
+        {
+            std::vector<double> vals;
+            readConstVect<4>(tokenizer, vals);
+            m_currentTransform *=  Eigen::Affine3d(Eigen::AngleAxis<double>( vals[3] * M_PI / 180.0, 
+                    Eigen::Vector3d(vals[0], vals[1], vals[2]))).matrix();
+        }
+        break;
         default:
             throw ParserException("Unknown transform");
     }

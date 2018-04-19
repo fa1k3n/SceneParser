@@ -32,6 +32,12 @@ private:
 
     bool readBlock(CTokenizer& tokenizer, CPropertyMap& pairs);
     bool readPropertyValue(CTokenizer& tokenizer, SPropertyValue& prop);
+    template<size_t size>
+    bool readConstVect(CTokenizer& tokenizer, std::vector<double>& vect) {
+        for(unsigned int i = 0; i < size; i ++)
+            vect.push_back(getConstToken(tokenizer).val);
+        return true;
+    }
     
     Matrix4d m_currentTransform;
     ISceneGenerator& m_generator;
