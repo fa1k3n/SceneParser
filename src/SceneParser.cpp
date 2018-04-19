@@ -5,7 +5,13 @@
 
 CSceneParser::CSceneParser(ISceneGenerator& generator) : 
     m_generator(generator) 
-{}
+{
+    //Create unit transform
+    m_currentTransform << 1, 0, 0, 0,
+                                               0, 1, 0, 0,
+                                               0, 0, 1, 0,
+                                               0, 0, 0, 1;
+}
 
 bool CSceneParser::ParseScene(std::string scene) {
      std::istringstream s(scene);
@@ -19,7 +25,7 @@ bool CSceneParser::ParseScene(std::istream& scene) {
 
         if(type == SToken::KEYWORD) {
             CPropertyMap properties;
-            auto keyw = getKeywordToken(tokenizer)->str;
+            auto keyw = getKeywordToken(tokenizer).str;
             if(keyw == "camera") {
                 readBlock(tokenizer, properties); 
                 if(!parseCamera(tokenizer, properties)) return false;
@@ -47,7 +53,7 @@ bool CSceneParser::ParseScene(std::istream& scene) {
 }
 
 bool CSceneParser::handleTransf(CTokenizer& tokenizer) {
-    STransfToken::TransfTypeID id = getTransfToken(tokenizer)->id;
+    STransfToken::TransfTypeID id = getTransfToken(tokenizer).id;
     switch(id) {
         case STransfToken::PUSH:
         break;
@@ -73,7 +79,7 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
         while((type = tokenizer.peekNextToken()) != SToken::NONE)  {
             switch(type) {
                 case SToken::SYM:
-                    if((getSymToken(tokenizer)->str != "}")) {
+                    if((getSymToken(tokenizer).str != "}")) {
                         //CPropertyMap pm;
                         //readBlock(tokenizer, pm);
                         return false;
@@ -86,7 +92,7 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
                 // properties, need to read them here
                 case SToken::KEYWORD:
                 {
-                    auto name = getKeywordToken(tokenizer)->str;
+                    auto name = getKeywordToken(tokenizer).str;
                     SPropertyValue prop;
                     readPropertyValue(tokenizer, prop);
                     map[name] =  prop;
@@ -94,7 +100,7 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
                  break;
                 case SToken::ID:
                 {
-                    auto name = getIdToken(tokenizer)->str;
+                    auto name = getIdToken(tokenizer).str;
                     SPropertyValue prop;
                     readPropertyValue(tokenizer, prop);
                     map[name] =  prop;
@@ -112,11 +118,11 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
 bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val) { 
     auto nextTok = tokenizer.peekNextToken() ;
     if(nextTok == SToken::ID) {
-        val = getIdToken(tokenizer)->str;
+        val = getIdToken(tokenizer).str;
     } else if (nextTok == SToken::CONST) {
         // Glob all consts
         while( tokenizer.peekNextToken() == SToken::CONST) 
-            val << getConstToken(tokenizer)->val;
+            val << getConstToken(tokenizer).val;
     } else if (nextTok == SToken::SYM) {
          while( tokenizer.peekNextToken() == SToken::SYM) {
              CPropertyMap pm;
@@ -129,7 +135,7 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
 
 bool CSceneParser::parseMisc(CTokenizer& tokenizer, CPropertyMap& properties) {
     SMisc misc;
-    return m_generator.Misc(misc);
+    return m_generator.Misc(misc, m_currentTransform);
 }
 
 bool CSceneParser::parseObject(CTokenizer& tokenizer, CPropertyMap& properties) {
@@ -138,7 +144,7 @@ bool CSceneParser::parseObject(CTokenizer& tokenizer, CPropertyMap& properties) 
     SObject obj(properties["geometry"].toStr(), properties["material"].toStr());
     if(properties.hasProperty("name")) obj.name.set(properties["name"].toStr());
     
-    return m_generator.Object(obj);
+    return m_generator.Object(obj, m_currentTransform);
 }
 
 bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
@@ -167,11 +173,11 @@ bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
         SPointLight* pl = static_cast<SPointLight*>(light);
         if(properties.hasProperty("position")) pl->position.set(properties["position"].toDoubleList());
         if(properties.hasProperty("attenuation_coefs")) pl->attenuationCoefs.set(properties["attenuation_coefs"].toDouble());
-        ret = m_generator.Light(*pl);
+        ret = m_generator.Light(*pl, m_currentTransform);
     } else if (type == SLight::DIRECTIONAL) {
         SDirectionalLight* dl = static_cast<SDirectionalLight*>(light) ;
         if(properties.hasProperty("direction")) dl->direction.set(properties["direction"].toDoubleList());
-        ret = m_generator.Light(*dl);
+        ret = m_generator.Light(*dl, m_currentTransform);
     } 
    
     delete light;
@@ -193,7 +199,7 @@ bool CSceneParser::parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties
     if(properties.hasProperty("specular_power")) mat.specularPower.set(properties["specular_power"].toDouble());
     if(properties.hasProperty("texture")) mat.texture.set(properties["texture"].toStr());
 
-    return m_generator.Material(mat);
+    return m_generator.Material(mat, m_currentTransform);
 }
 
 bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) { 
@@ -220,14 +226,14 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
         SBasicCamera* bc = static_cast<SBasicCamera*>(cam);
         if(properties.hasProperty("fov")) bc->fov.set(properties["fov"].toDouble());
         if(properties.hasProperty("aspect_ratio")) bc->aspectRatio.set(properties["aspect_ratio"].toDouble());
-        ret = m_generator.Camera(*bc);
+        ret = m_generator.Camera(*bc, m_currentTransform);
     } else if (type == SCamera::ADVANCED) {
         SAdvancedCamera* ac = static_cast<SAdvancedCamera*>(cam);
         if(properties.hasProperty("left")) ac->left.set(properties["left"].toDouble());
         if(properties.hasProperty("right")) ac->right.set(properties["right"].toDouble());
         if(properties.hasProperty("top")) ac->top.set(properties["top"].toDouble());        
         if(properties.hasProperty("bottom")) ac->bottom.set(properties["bottom"].toDouble());
-        ret = m_generator.Camera(*ac);
+        ret = m_generator.Camera(*ac, m_currentTransform);
     }
 
     delete cam;
@@ -261,19 +267,18 @@ bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties
             vertices.push_back({-1, 1, 0});     
            mesh->vertices.set(vertices);
         }
-        ret = m_generator.Geometry(*mesh);
+        ret = m_generator.Geometry(*mesh, m_currentTransform);
         
     } else
-        ret = m_generator.Geometry(*geom);
+        ret = m_generator.Geometry(*geom, m_currentTransform);
     delete geom;
     return ret;
 }
 
-SKeywordToken* CSceneParser::getKeywordToken(CTokenizer& tokenizer) {
+SKeywordToken CSceneParser::getKeywordToken(CTokenizer& tokenizer) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-     if(tok->type != SToken::KEYWORD) return nullptr;
-    return static_cast<SKeywordToken*>(tok.get());
+    return *static_cast<SKeywordToken*>(tok.get());
 }
 
 bool CSceneParser::checkKeywords(CPropertyMap& properties, std::set<std::string> validKeywords) {
@@ -282,30 +287,27 @@ bool CSceneParser::checkKeywords(CPropertyMap& properties, std::set<std::string>
     return true;
 }
 
-SSymToken* CSceneParser::getSymToken(CTokenizer& tokenizer) {
+SSymToken CSceneParser::getSymToken(CTokenizer& tokenizer) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-    if(tok->type != SToken::SYM) return nullptr;
-    return static_cast<SSymToken*>(tok.get());
+    return *static_cast<SSymToken*>(tok.get());
 }
 
-SConstToken* CSceneParser::getConstToken(CTokenizer& tokenizer) {
+SConstToken CSceneParser::getConstToken(CTokenizer& tokenizer) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-    if(tok->type != SToken::CONST) return nullptr;
-    return static_cast<SConstToken*>(tok.get());
+//    if(tok->type != SToken::CONST) return nullptr;
+    return *static_cast<SConstToken*>(tok.get());
 }
 
-SIdToken* CSceneParser::getIdToken(CTokenizer& tokenizer) {
+SIdToken CSceneParser::getIdToken(CTokenizer& tokenizer) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-    if(tok->type != SToken::ID) return nullptr;
-    return static_cast<SIdToken*>(tok.get());
+    return *static_cast<SIdToken*>(tok.get());
 }
     
-STransfToken* CSceneParser::getTransfToken(CTokenizer& tokenizer) {
+STransfToken CSceneParser::getTransfToken(CTokenizer& tokenizer) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
-    if(tok->type != SToken::TRANSF) return nullptr;
-    return static_cast<STransfToken*>(tok.get());
+    return *static_cast<STransfToken*>(tok.get());
 }

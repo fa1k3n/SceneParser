@@ -22,16 +22,18 @@ private:
 
     bool checkKeywords(CPropertyMap& properties, std::set<std::string> validKeywords);
     
-    SKeywordToken* getKeywordToken(CTokenizer& tokenizer);
-    SSymToken* getSymToken(CTokenizer& tokenizer);
-    SConstToken* getConstToken(CTokenizer& tokenizer);
-    SIdToken* getIdToken(CTokenizer& tokenizer);
-    STransfToken* getTransfToken(CTokenizer& tokenizer);
+    SKeywordToken getKeywordToken(CTokenizer& tokenizer);
+    SSymToken getSymToken(CTokenizer& tokenizer);
+    SConstToken getConstToken(CTokenizer& tokenizer);
+    SIdToken getIdToken(CTokenizer& tokenizer);
+    STransfToken getTransfToken(CTokenizer& tokenizer);
 
     bool handleTransf(CTokenizer& tokenizer);
 
     bool readBlock(CTokenizer& tokenizer, CPropertyMap& pairs);
     bool readPropertyValue(CTokenizer& tokenizer, SPropertyValue& prop);
+    
+    Matrix4d m_currentTransform;
     ISceneGenerator& m_generator;
 };
 

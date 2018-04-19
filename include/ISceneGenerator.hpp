@@ -138,12 +138,12 @@ struct SMisc {};
 class ISceneGenerator {
 public:
     virtual ~ISceneGenerator() {}
-    virtual bool Camera(SCamera& cam) = 0;
-    virtual bool Material(SMaterial& mat) = 0;
-    virtual bool Light(SLight& light) = 0;
-    virtual bool Geometry(SGeometry& geometry) = 0;
-    virtual bool Object(SObject& obj) = 0;
-    virtual bool Misc(SMisc& misc) = 0;
+    virtual bool Camera(SCamera& cam, Matrix4d& transform) = 0;
+    virtual bool Material(SMaterial& mat, Matrix4d& transform) = 0;
+    virtual bool Light(SLight& light, Matrix4d& transform) = 0;
+    virtual bool Geometry(SGeometry& geometry, Matrix4d& transform) = 0;
+    virtual bool Object(SObject& obj, Matrix4d& transform) = 0;
+    virtual bool Misc(SMisc& misc, Matrix4d& transform) = 0;
 
 private:
 

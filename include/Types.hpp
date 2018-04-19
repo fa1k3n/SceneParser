@@ -6,6 +6,9 @@
 #include <exception>
 #include <cstdarg>
 
+#include <Eigen/Dense>
+using Eigen::Matrix4d;
+
 struct ImplicitTypeConversion : public std::exception {
     ImplicitTypeConversion(std::string msg) : exception() , m_msg(msg) {}
     const char* what() const throw() {
@@ -153,6 +156,8 @@ private:
 
 class CPropertyMap {
 public:    
+    CPropertyMap() {}
+    CPropertyMap(const CPropertyMap& m) : m_props(m.m_props), m_firstKey(m.m_firstKey) {}
     std::string first() { return m_firstKey; }
     
     SPropertyValue& operator[](std::string name) {

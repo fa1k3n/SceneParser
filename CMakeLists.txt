@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0)
 
 project(SceneParser LANGUAGES CXX)
 
@@ -17,6 +17,8 @@ if (COVERAGE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 endif()
 
+find_package (Eigen3 3.3  REQUIRED NO_MODULE)
+
 add_subdirectory("test")
 
 set(SRC
@@ -34,3 +36,4 @@ set(INC
 include_directories("include")
 
 add_library(scparser ${SRC} ${INC})
+target_link_libraries (scparser Eigen3::Eigen)
