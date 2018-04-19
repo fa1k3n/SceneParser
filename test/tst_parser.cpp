@@ -34,7 +34,7 @@ public:
          if(object) delete object;
      }
      
-    bool SaveLight(SLight l,  Matrix4d& t) { 
+    bool SaveLight(SLight& l,  Matrix4d& t) { 
         if(l.type() == SLight::DIRECTIONAL) light = new SDirectionalLight(*static_cast<SDirectionalLight*>(&l));
         else if(l.type() == SLight::POINT) light = new SPointLight(*static_cast<SPointLight*>(&l));
         return true;
@@ -286,8 +286,8 @@ TEST(SceneParserLight, defaultPointLightParsing) {
     ASSERT_TRUE(equal(light->ambient.toVector(), {0, 0, 0}));
     ASSERT_TRUE(equal(light->diffuse.toVector(), {0, 0, 0}));
     ASSERT_TRUE(equal(light->specular.toVector(), {0, 0, 0}));
-   // ASSERT_TRUE(equal(light->position.toVector(), {0, 0, 0}));
-   // ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
+    ASSERT_TRUE(equal(light->position.toVector(), {0, 0, 0}));
+    ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
 }
 
 TEST(SceneParserLight, testPointLightParsing) {
@@ -308,8 +308,8 @@ TEST(SceneParserLight, testPointLightParsing) {
     ASSERT_TRUE(equal(light->ambient.toVector(), {1, 0, 0}));
     ASSERT_TRUE(equal(light->diffuse.toVector(), {0, 1, 0}));
     ASSERT_TRUE(equal(light->specular.toVector(), {0, 0, 1}));
-   // ASSERT_TRUE(equal(light->position.toVector(), {1, 0, 0}));
-   // ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
+    ASSERT_TRUE(equal(light->position.toVector(), {1, 0, 0}));
+    ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
  }
 
 TEST(SceneParserLight, defaultDirectionalLightParsing) {
@@ -327,7 +327,7 @@ TEST(SceneParserLight, defaultDirectionalLightParsing) {
     ASSERT_STREQ("foo", light->name().c_str());
     
     // Check defaults, same
-   //ASSERT_TRUE(equal(light->direction.toVector(), {0, 0, 0}));
+   ASSERT_TRUE(equal(light->direction.toVector(), {0, 0, 0}));
 }
 
 TEST(SceneParserLight, testDirectionalLightParsing) {
@@ -340,7 +340,7 @@ TEST(SceneParserLight, testDirectionalLightParsing) {
 
     SDirectionalLight *light = generator.GetDirectionalLight();
     EXPECT_TRUE(light != nullptr);
-    //ASSERT_TRUE(equal(light->direction.toVector(), {-1, 1, 0}));
+    ASSERT_TRUE(equal(light->direction.toVector(), {-1, 1, 0}));
 }
 
 TEST(SceneParserLight, unknownLightTypeWillThrow) {
