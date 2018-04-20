@@ -17,7 +17,10 @@ if (COVERAGE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 endif()
 
-find_package (Eigen3 3.3  REQUIRED NO_MODULE)
+if(NOT DEFINED EIGEN3_INCLUDE_DIRS)
+    find_package (Eigen3 3.3  REQUIRED NO_MODULE)
+endif()
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 add_subdirectory("test")
 
@@ -36,4 +39,3 @@ set(INC
 include_directories("include")
 
 add_library(scparser ${SRC} ${INC})
-target_link_libraries (scparser Eigen3::Eigen)
