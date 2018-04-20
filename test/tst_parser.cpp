@@ -457,3 +457,49 @@ TEST(SceneTransform, basicRotateTransf) {
     auto mat = generator.GetTransform();
     ASSERT_TRUE(mat.isApprox(tmp));
 }
+
+TEST(SceneTransform, basicTransformTransf) {
+   NiceMock< TestSceneGenerator> generator;
+    CSceneParser parser(generator);
+
+    Matrix4d tmp;
+    tmp <<  1, -2, -3, 0,
+                   2,  2, -3, 0,
+                   3, 3, 4, 0,
+                    0,   0, 1, 1;
+
+    bool success = parser.ParseScene("transform 1 2 3 0 -2 2 3 0 -3 -3 4 1 misc { } ");    
+    ASSERT_TRUE(success);
+    auto mat = generator.GetTransform();
+    ASSERT_TRUE(mat.isApprox(tmp));
+}
+
+TEST(SceneTransform, basicLoadIdentityTransf) {
+   NiceMock< TestSceneGenerator> generator;
+    CSceneParser parser(generator);
+
+    bool success = parser.ParseScene("transform 1 2 3 0 -2 2 3 0 -3 -3 4 1 load_identity misc { } ");    
+    ASSERT_TRUE(success);
+    auto mat = generator.GetTransform();
+    ASSERT_TRUE(mat.isApprox(Matrix4d::Identity()));
+}
+
+TEST(SceneTransform, basicPushTransf) {
+   NiceMock< TestSceneGenerator> generator;
+    CSceneParser parser(generator);
+
+    bool success = parser.ParseScene("scale 2 2 2 push_transform misc { } ");    
+    ASSERT_TRUE(success);
+    auto mat = generator.GetTransform();
+    ASSERT_TRUE(mat.isApprox(Matrix4d::Identity()));
+}
+
+TEST(SceneTransform, basicPopTransf) {
+   NiceMock< TestSceneGenerator> generator;
+    CSceneParser parser(generator);
+
+    bool success = parser.ParseScene("push_transform scale 2 2 2 pop_transform misc { } ");    
+    ASSERT_TRUE(success);
+    auto mat = generator.GetTransform();
+    ASSERT_TRUE(mat.isApprox(Matrix4d::Identity()));
+}

@@ -5,6 +5,7 @@
 #include <istream>
 #include <Tokenizer.hpp>
 #include <vector>
+#include <stack>
 #include <set>
 
 class CSceneParser {
@@ -39,7 +40,7 @@ private:
         return true;
     }
     
-    Matrix4d m_currentTransform;
+    std::stack<Matrix4d> m_transformStack;
     ISceneGenerator& m_generator;
 };
 

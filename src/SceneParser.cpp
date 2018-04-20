@@ -9,7 +9,7 @@ CSceneParser::CSceneParser(ISceneGenerator& generator) :
     m_generator(generator) 
 {
     //Create unit transform
-    m_currentTransform = Matrix4d::Identity();
+    m_transformStack.push(Matrix4d::Identity());
 }
 
 bool CSceneParser::ParseScene(std::string scene) {
@@ -55,31 +55,48 @@ bool CSceneParser::handleTransf(CTokenizer& tokenizer) {
     STransfToken::TransfTypeID id = getTransfToken(tokenizer).id;
     switch(id) {
         case STransfToken::PUSH:
+            m_transformStack.push(Matrix4d::Identity());
+        break;
+        case STransfToken::POP:
+            m_transformStack.push(Matrix4d::Identity());
         break;
         case STransfToken::TRANSLATE:
         {
             std::vector<double> vals;
             readConstVect<3>(tokenizer, vals);
-            m_currentTransform *=  Eigen::Affine3d(Eigen::Translation3d(vals[0], vals[1], vals[2])).matrix();
+            m_transformStack.top() *=  Eigen::Affine3d(Eigen::Translation3d(vals[0], vals[1], vals[2])).matrix();
         }
         break;
         case STransfToken::SCALE:
         {
             std::vector<double> vals;
             readConstVect<3>(tokenizer, vals);
-            m_currentTransform *=  Eigen::Affine3d(Eigen::Scaling(vals[0], vals[1], vals[2])).matrix();
+            m_transformStack.top() *=  Eigen::Affine3d(Eigen::Scaling(vals[0], vals[1], vals[2])).matrix();
         }
         break;
         case STransfToken::ROTATE:
         {
             std::vector<double> vals;
             readConstVect<4>(tokenizer, vals);
-            m_currentTransform *=  Eigen::Affine3d(Eigen::AngleAxis<double>( vals[3] * M_PI / 180.0, 
+            m_transformStack.top() *=  Eigen::Affine3d(Eigen::AngleAxis<double>( vals[3] * M_PI / 180.0, 
                     Eigen::Vector3d(vals[0], vals[1], vals[2]))).matrix();
         }
         break;
+        case STransfToken::TRANSFORM:
+        {
+            std::vector<double> vals;
+            readConstVect<12>(tokenizer, vals);
+            std::vector<double> tmp = {0.0, 0.0, 0.0, 1.0};
+            vals.insert(std::end(vals), std::begin(tmp), std::end(tmp));
+            m_transformStack.top() *=  Eigen::Matrix4d(vals.data());
+        }
+        break;
+        case STransfToken::LOAD:
+           m_transformStack.top() =  Eigen::Matrix4d::Identity();
+        break;
+
         default:
-            throw ParserException("Unknown transform");
+            throw ParserException("Unknown transform %d", id);
     }
     return true;
 }
@@ -147,7 +164,7 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
 
 bool CSceneParser::parseMisc(CTokenizer& tokenizer, CPropertyMap& properties) {
     SMisc misc;
-    return m_generator.Misc(misc, m_currentTransform);
+    return m_generator.Misc(misc, m_transformStack.top());
 }
 
 bool CSceneParser::parseObject(CTokenizer& tokenizer, CPropertyMap& properties) {
@@ -156,7 +173,7 @@ bool CSceneParser::parseObject(CTokenizer& tokenizer, CPropertyMap& properties) 
     SObject obj(properties["geometry"].toStr(), properties["material"].toStr());
     if(properties.hasProperty("name")) obj.name.set(properties["name"].toStr());
     
-    return m_generator.Object(obj, m_currentTransform);
+    return m_generator.Object(obj, m_transformStack.top());
 }
 
 bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
@@ -185,11 +202,11 @@ bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
         SPointLight* pl = static_cast<SPointLight*>(light);
         if(properties.hasProperty("position")) pl->position.set(properties["position"].toDoubleList());
         if(properties.hasProperty("attenuation_coefs")) pl->attenuationCoefs.set(properties["attenuation_coefs"].toDouble());
-        ret = m_generator.Light(*pl, m_currentTransform);
+        ret = m_generator.Light(*pl, m_transformStack.top());
     } else if (type == SLight::DIRECTIONAL) {
         SDirectionalLight* dl = static_cast<SDirectionalLight*>(light) ;
         if(properties.hasProperty("direction")) dl->direction.set(properties["direction"].toDoubleList());
-        ret = m_generator.Light(*dl, m_currentTransform);
+        ret = m_generator.Light(*dl, m_transformStack.top());
     } 
    
     delete light;
@@ -211,7 +228,7 @@ bool CSceneParser::parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties
     if(properties.hasProperty("specular_power")) mat.specularPower.set(properties["specular_power"].toDouble());
     if(properties.hasProperty("texture")) mat.texture.set(properties["texture"].toStr());
 
-    return m_generator.Material(mat, m_currentTransform);
+    return m_generator.Material(mat, m_transformStack.top());
 }
 
 bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) { 
@@ -238,14 +255,14 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
         SBasicCamera* bc = static_cast<SBasicCamera*>(cam);
         if(properties.hasProperty("fov")) bc->fov.set(properties["fov"].toDouble());
         if(properties.hasProperty("aspect_ratio")) bc->aspectRatio.set(properties["aspect_ratio"].toDouble());
-        ret = m_generator.Camera(*bc, m_currentTransform);
+        ret = m_generator.Camera(*bc, m_transformStack.top());
     } else if (type == SCamera::ADVANCED) {
         SAdvancedCamera* ac = static_cast<SAdvancedCamera*>(cam);
         if(properties.hasProperty("left")) ac->left.set(properties["left"].toDouble());
         if(properties.hasProperty("right")) ac->right.set(properties["right"].toDouble());
         if(properties.hasProperty("top")) ac->top.set(properties["top"].toDouble());        
         if(properties.hasProperty("bottom")) ac->bottom.set(properties["bottom"].toDouble());
-        ret = m_generator.Camera(*ac, m_currentTransform);
+        ret = m_generator.Camera(*ac, m_transformStack.top());
     }
 
     delete cam;
@@ -279,10 +296,10 @@ bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties
             vertices.push_back({-1, 1, 0});     
            mesh->vertices.set(vertices);
         }
-        ret = m_generator.Geometry(*mesh, m_currentTransform);
+        ret = m_generator.Geometry(*mesh, m_transformStack.top());
         
     } else
-        ret = m_generator.Geometry(*geom, m_currentTransform);
+        ret = m_generator.Geometry(*geom, m_transformStack.top());
     delete geom;
     return ret;
 }
