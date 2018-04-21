@@ -52,9 +52,10 @@ TEST(SPropertyValueTest, setvalueString) {
 
 TEST(SPropertyValueTest, basicPropertyMap) {
     CPropertyMap map;
+    map["test"] = SPropertyValue(3.0);
     SPropertyValue var(map);
     ASSERT_EQ(SPropertyValue::MAP, var.type);
-    ASSERT_EQ(&map, &var.toMap());
+    ASSERT_EQ(map["test"].toDouble(), var.toMap()["test"].toDouble());
 }
 
 TEST(SPropertyValueTest, doubleList) {
@@ -77,10 +78,12 @@ TEST(SPropertyValueTest, stringList) {
 TEST(SPropertyValueTest, propertyMapList) {
     SPropertyValue var;
     CPropertyMap m1, m2;
+    m1["test"] = SPropertyValue(3.0);
+    m2["test"] = SPropertyValue(-3.0);
     var << m1 << m2;
     ASSERT_EQ(SPropertyValue::MAP_LIST, var.type);
-    ASSERT_EQ(&m1, &var.toMap(0));
-    ASSERT_EQ(&m2, &var.toMap(1));
+    ASSERT_EQ(m1["test"].toDouble(), var.toMap(0)["test"].toDouble());
+    ASSERT_EQ(m2["test"].toDouble(), var.toMap(1)["test"].toDouble());
 }
 
 TEST(CPropertyMapTest, hasProperty) {

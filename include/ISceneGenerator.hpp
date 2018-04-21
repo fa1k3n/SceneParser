@@ -122,7 +122,7 @@ struct SVertex {
 struct SMesh : public SGeometry {
     SMesh(std::string n) : SGeometry(SGeometry::MESH, n) {}
     SMesh(const SMesh& mesh) : SGeometry(mesh), vertices(mesh.vertices), tri(mesh.tri) {}
-    CProperty<SVertex> vertices;
+    std::vector<SVertex> vertices;
     CProperty<double, 3> tri;
 };
 

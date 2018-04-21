@@ -57,6 +57,7 @@ public:
     }
     
     bool SaveGeometry(SGeometry& geom, Matrix4d& t) {
+       transform = t;
         if(geom.type() == SGeometry::SPHERE) geometry = new SSphere(*static_cast<SSphere*>(&geom));
         else if(geom.type() == SGeometry::MESH) geometry = new SMesh(*static_cast<SMesh*>(&geom));
         return true;
@@ -373,11 +374,25 @@ TEST(SceneParserGeometry, meshGeometry) {
     CSceneParser parser(generator);
     EXPECT_CALL(generator, Geometry(_, _));
     bool success = parser.ParseScene("Geometry { type mesh name foo "
-    "vertices { p -1 1 0 N 0 0 1 tc 0 0 0 } { p -1 1 0 N 0 0 1 tc 0 0 0 } { p -1 1 0 N 0 0 1 tc 0 0 0 } \n"
+    "vertices { p -1 1 0 N -1 0 1 tc 0 0 0 } { p -1 1 0 N 0 0 1 tc 0 0 0 } { p -1 1 0 N 0 -1 1 tc 0 0 0 } \n"
     "tri 0 1 2 }");
     ASSERT_TRUE(success);
     SMesh* mesh = generator.GetMesh();
     EXPECT_TRUE(mesh != nullptr);
+    ASSERT_TRUE(equal(mesh->vertices[0].p.toVector(), {-1, 1, 0}));
+    ASSERT_TRUE(equal(mesh->vertices[0].n.toVector(), {-1, 0, 1}));
+    ASSERT_TRUE(equal(mesh->vertices[0].tc.toVector(), {0, 0, 0}));
+    
+    ASSERT_TRUE(equal(mesh->vertices[1].p.toVector(), {-1, 1, 0}));
+    ASSERT_TRUE(equal(mesh->vertices[1].n.toVector(), {0, 0, 1}));
+    ASSERT_TRUE(equal(mesh->vertices[1].tc.toVector(), {0, 0, 0}));
+    
+    ASSERT_TRUE(equal(mesh->vertices[2].p.toVector(), {-1, 1, 0}));
+    ASSERT_TRUE(equal(mesh->vertices[2].n.toVector(), {0, -1, 1}));
+    ASSERT_TRUE(equal(mesh->vertices[2].tc.toVector(), {0, 0, 0}));
+    
+    // TRI should be array just as vertices is!!!!!!!
+    // ASSERT_TRUE(equal(mesh->tri[0].toVector(), {0, 1, 2}));
     ASSERT_TRUE(equal(mesh->tri.toVector(), {0, 1, 2}));
 }
 

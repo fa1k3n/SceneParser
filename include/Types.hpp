@@ -64,7 +64,7 @@ struct SPropertyValue {
     SPropertyValue() : type(NONE) {}
     SPropertyValue(double val) : type(DOUBLE) {m_double.push_back(val);}
     SPropertyValue(std::string str) : type(STRING) {m_str.push_back(str);}
-    SPropertyValue(CPropertyMap& map) : type(MAP) {m_map.push_back(&map);}
+    SPropertyValue(CPropertyMap& map) : type(MAP) {m_map.push_back(map);}
 
     void operator=(double d) { 
         if(type != NONE && type != DOUBLE) 
@@ -84,7 +84,7 @@ struct SPropertyValue {
         if(type != NONE && type != MAP) 
             throw ImplicitTypeConversion("Trying to assign non-string to string property");
         type = MAP; 
-        m_map.push_back(&map); 
+        m_map.push_back(map); 
     }
      
      SPropertyValue& operator<<(double v) {
@@ -107,7 +107,7 @@ struct SPropertyValue {
         if(type == NONE) type = MAP;
        else if (type == MAP) type = MAP_LIST;
        else if(type != MAP_LIST) throw ImplicitTypeConversion("Trying to assign property map to non-property map property");
-       m_map.push_back(&s);
+       m_map.push_back(s);
        return *this;
     }
      
@@ -138,10 +138,10 @@ struct SPropertyValue {
     CPropertyMap& toMap(int index = 0) {
         if(type != MAP && type != MAP_LIST)
             throw ImplicitTypeConversion("Trying to read a map from non-map property" );
-        return *m_map[index];
+        return m_map[index];
     }
     
-    std::vector<CPropertyMap*> toMapList() {
+    std::vector<CPropertyMap> toMapList() {
         if(type != MAP && type != MAP_LIST)
             throw ImplicitTypeConversion("Trying to read a map from non-map property" );
         return m_map;
@@ -151,7 +151,7 @@ struct SPropertyValue {
 private:
     std::vector<double> m_double;
     std::vector<std::string> m_str;
-    std::vector<CPropertyMap*> m_map;
+    std::vector<CPropertyMap> m_map;
 };
 
 class CPropertyMap {

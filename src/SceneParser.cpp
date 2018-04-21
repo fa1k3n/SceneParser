@@ -154,7 +154,7 @@ bool CSceneParser::readPropertyValue(CTokenizer& tokenizer, SPropertyValue& val)
             val << getConstToken(tokenizer).val;
     } else if (nextTok == SToken::SYM) {
          while( tokenizer.peekNextToken() == SToken::SYM) {
-             CPropertyMap pm;
+             CPropertyMap pm;;
              readBlock(tokenizer, pm);
              val <<  pm;
          } 
@@ -291,10 +291,18 @@ bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties
         SMesh* mesh = static_cast<SMesh*>(geom);
         if(properties.hasProperty("tri")) mesh->tri.set(properties["tri"].toDoubleList());
         if(properties.hasProperty("vertices")) {
-            // BUGFROM HERE
-            std::vector<SVertex> vertices;
-            vertices.push_back({-1, 1, 0});     
-           mesh->vertices.set(vertices);
+            // BUGFROM HERE'
+            auto verts = properties["vertices"].toMapList();
+            for(unsigned int i = 0; i < verts.size(); i++ ) {
+                SVertex v;
+                v.p.set(verts[i]["p"].toDoubleList());
+                v.n.set(verts[i]["n"].toDoubleList());
+                v.tc.set(verts[i]["tc"].toDoubleList());
+
+                mesh->vertices.push_back(v);
+            }
+           // std::vector<SVertex> vertices;
+
         }
         ret = m_generator.Geometry(*mesh, m_transformStack.top());
         
