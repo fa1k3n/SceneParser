@@ -114,16 +114,16 @@ struct SSphere : public SGeometry {
 };
 
 struct SVertex {
-    CProperty<double, 3> p = {{0, 0, 0}};
-    CProperty<double, 3> n = {{0, 0, 0}};
-    CProperty<double, 3> tc = {{0, 0, 0}};
+    Vector3d p = {0, 0, 0};
+    Vector3d n = {0, 0, 0};
+    Vector3d tc = {0, 0, 0};
 };
 
 struct SMesh : public SGeometry {
     SMesh(std::string n) : SGeometry(SGeometry::MESH, n) {}
     SMesh(const SMesh& mesh) : SGeometry(mesh), vertices(mesh.vertices), tri(mesh.tri) {}
     std::vector<SVertex> vertices;
-    CProperty<double, 3> tri;
+    std::vector<Vector3d> tri;
 };
 
 struct SObject {

@@ -289,19 +289,16 @@ bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties
     bool ret = false;
       if(type == SGeometry::MESH) {
         SMesh* mesh = static_cast<SMesh*>(geom);
-        if(properties.hasProperty("tri")) mesh->tri.set(properties["tri"].toDoubleList());
+        if(properties.hasProperty("tri")) mesh->tri.push_back(toVector3d(properties["tri"].toDoubleList()));
         if(properties.hasProperty("vertices")) {
-            // BUGFROM HERE'
             auto verts = properties["vertices"].toMapList();
             for(unsigned int i = 0; i < verts.size(); i++ ) {
-                SVertex v;
-                v.p.set(verts[i]["p"].toDoubleList());
-                v.n.set(verts[i]["n"].toDoubleList());
-                v.tc.set(verts[i]["tc"].toDoubleList());
-
+               SVertex v;
+               if(verts[i].hasProperty("p")) v.p = toVector3d(verts[i]["p"].toDoubleList());
+               if(verts[i].hasProperty("n")) v.n = toVector3d(verts[i]["n"].toDoubleList());
+               if(verts[i].hasProperty("tc")) v.tc = toVector3d(verts[i]["tc"].toDoubleList());
                 mesh->vertices.push_back(v);
             }
-           // std::vector<SVertex> vertices;
 
         }
         ret = m_generator.Geometry(*mesh, m_transformStack.top());
@@ -347,4 +344,12 @@ STransfToken CSceneParser::getTransfToken(CTokenizer& tokenizer) {
     std::unique_ptr<SToken> tok;
     tokenizer.getNextToken(&tok);
     return *static_cast<STransfToken*>(tok.get());
+}
+
+Vector3d CSceneParser::toVector3d(std::vector<double> dblList) {
+    Vector3d tmp = Vector3d::Zero();
+    for(unsigned int i = 0; i < dblList.size(); i ++) {
+        tmp(i) = dblList[i];
+    }
+    return tmp;
 }

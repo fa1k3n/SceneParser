@@ -379,21 +379,19 @@ TEST(SceneParserGeometry, meshGeometry) {
     ASSERT_TRUE(success);
     SMesh* mesh = generator.GetMesh();
     EXPECT_TRUE(mesh != nullptr);
-    ASSERT_TRUE(equal(mesh->vertices[0].p.toVector(), {-1, 1, 0}));
-    ASSERT_TRUE(equal(mesh->vertices[0].n.toVector(), {-1, 0, 1}));
-    ASSERT_TRUE(equal(mesh->vertices[0].tc.toVector(), {0, 0, 0}));
+    ASSERT_EQ(mesh->vertices[0].p, Vector3d(-1, 1, 0));
+    ASSERT_EQ(mesh->vertices[0].n,  Vector3d(-1, 0, 1));
+    ASSERT_EQ(mesh->vertices[0].tc,  Vector3d(0, 0, 0));
     
-    ASSERT_TRUE(equal(mesh->vertices[1].p.toVector(), {-1, 1, 0}));
-    ASSERT_TRUE(equal(mesh->vertices[1].n.toVector(), {0, 0, 1}));
-    ASSERT_TRUE(equal(mesh->vertices[1].tc.toVector(), {0, 0, 0}));
+    ASSERT_EQ(mesh->vertices[1].p,  Vector3d(-1, 1, 0));
+    ASSERT_EQ(mesh->vertices[1].n,  Vector3d(0, 0, 1));
+    ASSERT_EQ(mesh->vertices[1].tc,  Vector3d(0, 0, 0));
     
-    ASSERT_TRUE(equal(mesh->vertices[2].p.toVector(), {-1, 1, 0}));
-    ASSERT_TRUE(equal(mesh->vertices[2].n.toVector(), {0, -1, 1}));
-    ASSERT_TRUE(equal(mesh->vertices[2].tc.toVector(), {0, 0, 0}));
+    ASSERT_EQ(mesh->vertices[2].p,  Vector3d(-1, 1, 0));
+    ASSERT_EQ(mesh->vertices[2].n,  Vector3d(0, -1, 1));
+    ASSERT_EQ(mesh->vertices[2].tc,  Vector3d(0, 0, 0));
     
-    // TRI should be array just as vertices is!!!!!!!
-    // ASSERT_TRUE(equal(mesh->tri[0].toVector(), {0, 1, 2}));
-    ASSERT_TRUE(equal(mesh->tri.toVector(), {0, 1, 2}));
+    ASSERT_EQ(mesh->tri[0], Vector3d(0, 1, 2));
 }
 
 TEST(SceneParserGeometry, objectInstance) {

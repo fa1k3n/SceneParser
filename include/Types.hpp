@@ -8,6 +8,7 @@
 
 #include <Eigen/Dense>
 using Eigen::Matrix4d;
+using Eigen::Vector3d;
 
 struct ImplicitTypeConversion : public std::exception {
     ImplicitTypeConversion(std::string msg) : exception() , m_msg(msg) {}

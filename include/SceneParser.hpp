@@ -33,6 +33,9 @@ private:
 
     bool readBlock(CTokenizer& tokenizer, CPropertyMap& pairs);
     bool readPropertyValue(CTokenizer& tokenizer, SPropertyValue& prop);
+    
+    Vector3d toVector3d(std::vector<double> dblList);
+    
     template<size_t size>
     bool readConstVect(CTokenizer& tokenizer, std::vector<double>& vect) {
         for(unsigned int i = 0; i < size; i ++)
