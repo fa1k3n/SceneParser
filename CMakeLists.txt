@@ -23,6 +23,7 @@ endif()
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 add_subdirectory("test")
+add_subdirectory("examples")
 
 set(SRC
   src/SceneParser.cpp

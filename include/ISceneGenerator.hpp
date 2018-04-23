@@ -16,19 +16,19 @@ struct SCamera {
     SCamera(CameraType t, std::string n) : type(t), name(n) {}
     SCamera(const SCamera& c) : type(c.type), name(c.name), eyePoint(c.eyePoint), lookPoint(c.lookPoint), up(c.up), distanceImagePlane(c.distanceImagePlane) {}
 
-    CProperty<CameraType> type;
-    CProperty<std::string> name;
-    CProperty<double, 3> eyePoint = {{0, 0, -1}};
-    CProperty<double, 3> lookPoint = {{0, 0, 0}};
-    CProperty<double, 3> up             = {{0, 1, 0}};
-    CProperty<double>     distanceImagePlane = 3;
+    CameraType type;
+    std::string name;
+    Vector3d eyePoint = {0, 0, -1};
+    Vector3d lookPoint = {0, 0, 0};
+    Vector3d up            = {0.0, 1.0, 0.0};
+    double distanceImagePlane = 3;
 };
 
 struct SBasicCamera : public SCamera {
-    SBasicCamera(std::string n) : SCamera(CameraType::BASIC, n) { }
+    SBasicCamera(std::string n) : SCamera(CameraType::BASIC, n), fov(90), aspectRatio(4.0/3.0) { }
     SBasicCamera(const SBasicCamera& c) : SCamera(c), fov(c.fov), aspectRatio(c.aspectRatio) {}
-    CProperty<double> fov = 90;
-    CProperty<double> aspectRatio = 4.0/3.0;
+    double fov;
+    double aspectRatio;
 };
 
 struct SAdvancedCamera : public SCamera {

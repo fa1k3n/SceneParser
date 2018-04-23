@@ -51,8 +51,8 @@ public:
     }
     
     bool SaveCamera(SCamera& cam, Matrix4d& t) {
-         if(cam.type() == SCamera::BASIC) camera = new SBasicCamera(*static_cast<SBasicCamera*>(&cam));
-         else if(cam.type() == SCamera::ADVANCED) camera = new SAdvancedCamera(*static_cast<SAdvancedCamera*>(&cam));
+         if(cam.type == SCamera::BASIC) camera = new SBasicCamera(*static_cast<SBasicCamera*>(&cam));
+         else if(cam.type == SCamera::ADVANCED) camera = new SAdvancedCamera(*static_cast<SAdvancedCamera*>(&cam));
          return true;
     }
     
@@ -118,12 +118,12 @@ TEST(SceneParserCamera, defaultCameraParsing) {
     EXPECT_TRUE(cam != nullptr);
     
     // Check defaults
-    ASSERT_TRUE(equal(cam->eyePoint.toVector(), {0, 0, -1}));
-    ASSERT_TRUE(equal(cam->lookPoint.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(cam->up.toVector(), {0, 1, 0}));
-    ASSERT_EQ(3, cam->distanceImagePlane.get());
-    ASSERT_EQ(90, cam->fov.get());
-    ASSERT_EQ(4.0/3.0, cam->aspectRatio.get());
+    ASSERT_EQ(cam->eyePoint, Vector3d(0, 0, -1));
+    ASSERT_EQ(cam->lookPoint, Vector3d(0, 0, 0));
+    ASSERT_EQ(cam->up, Vector3d(0, 1, 0));
+    ASSERT_EQ(3, cam->distanceImagePlane);
+    ASSERT_EQ(90, cam->fov);
+    ASSERT_EQ(4.0/3.0, cam->aspectRatio);
 }
 
 TEST(SceneParserCamera, testCameraParsing) {
@@ -145,15 +145,14 @@ TEST(SceneParserCamera, testCameraParsing) {
     SBasicCamera* cam = generator.GetBasicCamera();
     EXPECT_TRUE(cam != nullptr);
     
-    ASSERT_EQ(SCamera::BASIC, cam->type.get());
-    ASSERT_STREQ("first_camera", cam->name.get().c_str());
-    
-    ASSERT_TRUE(equal(cam->eyePoint.toVector(), {0.2, 0.3, 0.6}));
-    ASSERT_TRUE(equal(cam->lookPoint.toVector(), {0.3, 0.1, -0.7}));
-    ASSERT_TRUE(equal(cam->up.toVector(), {0.2, -0.1, 0}));
-    ASSERT_EQ(7, cam->distanceImagePlane.get());
-    ASSERT_EQ(45, cam->fov.get());
-    ASSERT_EQ(0.3, cam->aspectRatio.get());
+    ASSERT_EQ(SCamera::BASIC, cam->type);
+    ASSERT_STREQ("first_camera", cam->name.c_str());
+    ASSERT_EQ(cam->eyePoint, Vector3d(0.2, 0.3, 0.6));
+    ASSERT_EQ(cam->lookPoint, Vector3d(0.3, 0.1, -0.7));
+    ASSERT_EQ(cam->up, Vector3d(0.2, -0.1, 0));
+    ASSERT_EQ(7, cam->distanceImagePlane);
+    ASSERT_EQ(45, cam->fov);
+    ASSERT_EQ(0.3, cam->aspectRatio);
 }
 
 TEST(SceneParserCamera, advancedCameraDefaultParsing) {

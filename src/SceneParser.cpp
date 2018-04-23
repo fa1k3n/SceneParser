@@ -245,16 +245,16 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
     else if(type == SCamera::ADVANCED) cam = new SAdvancedCamera(properties["name"].toStr());
     else throw ParserException("Camera: unknown camera type");
 
-    if(properties.hasProperty("eye_point")) cam->eyePoint.set(properties["eye_point"].toDoubleList());
-    if(properties.hasProperty("look_point")) cam->lookPoint.set(properties["look_point"].toDoubleList());
-    if(properties.hasProperty("up"))  cam->up.set(properties["up"].toDoubleList());
-    if(properties.hasProperty("distance_image_plane")) cam->distanceImagePlane.set(properties["distance_image_plane"].toDouble());
+    if(properties.hasProperty("eye_point")) cam->eyePoint = toVector3d(properties["eye_point"].toDoubleList());
+    if(properties.hasProperty("look_point")) cam->lookPoint = toVector3d(properties["look_point"].toDoubleList());
+    if(properties.hasProperty("up"))  cam->up = toVector3d(properties["up"].toDoubleList());
+    if(properties.hasProperty("distance_image_plane")) cam->distanceImagePlane = properties["distance_image_plane"].toDouble();
 
     bool ret = false;
     if(type == SCamera::BASIC) {
         SBasicCamera* bc = static_cast<SBasicCamera*>(cam);
-        if(properties.hasProperty("fov")) bc->fov.set(properties["fov"].toDouble());
-        if(properties.hasProperty("aspect_ratio")) bc->aspectRatio.set(properties["aspect_ratio"].toDouble());
+        if(properties.hasProperty("fov")) bc->fov = properties["fov"].toDouble();
+        if(properties.hasProperty("aspect_ratio")) bc->aspectRatio = properties["aspect_ratio"].toDouble();
         ret = m_generator.Camera(*bc, m_transformStack.top());
     } else if (type == SCamera::ADVANCED) {
         SAdvancedCamera* ac = static_cast<SAdvancedCamera*>(cam);
@@ -347,6 +347,7 @@ STransfToken CSceneParser::getTransfToken(CTokenizer& tokenizer) {
 }
 
 Vector3d CSceneParser::toVector3d(std::vector<double> dblList) {
+    if(dblList.size() != 3) throw PropertyException("Not enough values in list");
     Vector3d tmp = Vector3d::Zero();
     for(unsigned int i = 0; i < dblList.size(); i ++) {
         tmp(i) = dblList[i];
