@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <Types.hpp>
+#include <PrivTypes.hpp>
 
 TEST(SPropertyValueTest, basicDouble) {
     SPropertyValue var(3);

@@ -171,7 +171,7 @@ bool CSceneParser::parseObject(CTokenizer& tokenizer, CPropertyMap& properties) 
     if(!properties.hasProperty("geometry")) throw ParserException("Object: Missing required field GEOMETRY");
     if(!properties.hasProperty("material")) throw ParserException("Object: Missing required field MATERIAL");
     SObject obj(properties["geometry"].toStr(), properties["material"].toStr());
-    if(properties.hasProperty("name")) obj.name.set(properties["name"].toStr());
+    if(properties.hasProperty("name")) obj.name = properties["name"].toStr();
     
     return m_generator.Object(obj, m_transformStack.top());
 }
@@ -193,19 +193,19 @@ bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
     else if(type == SLight::DIRECTIONAL) light = new SDirectionalLight(properties["name"].toStr());
     else throw ParserException("Light: unknown light type");
 
-    if(properties.hasProperty("ambient")) light->ambient.set(properties["ambient"].toDoubleList());
-    if(properties.hasProperty("diffuse")) light->diffuse.set(properties["diffuse"].toDoubleList());
-    if(properties.hasProperty("specular")) light->specular.set(properties["specular"].toDoubleList());
+    if(properties.hasProperty("ambient")) light->ambient = toVector3d(properties["ambient"].toDoubleList());
+    if(properties.hasProperty("diffuse")) light->diffuse = toVector3d(properties["diffuse"].toDoubleList());
+    if(properties.hasProperty("specular")) light->specular = toVector3d(properties["specular"].toDoubleList());
     
     bool ret;
     if(type == SLight::POINT) {
         SPointLight* pl = static_cast<SPointLight*>(light);
-        if(properties.hasProperty("position")) pl->position.set(properties["position"].toDoubleList());
-        if(properties.hasProperty("attenuation_coefs")) pl->attenuationCoefs.set(properties["attenuation_coefs"].toDouble());
+        if(properties.hasProperty("position")) pl->position = toVector3d(properties["position"].toDoubleList());
+        if(properties.hasProperty("attenuation_coefs")) pl->attenuationCoefs = toVector3d(properties["attenuation_coefs"].toDoubleList());
         ret = m_generator.Light(*pl, m_transformStack.top());
     } else if (type == SLight::DIRECTIONAL) {
         SDirectionalLight* dl = static_cast<SDirectionalLight*>(light) ;
-        if(properties.hasProperty("direction")) dl->direction.set(properties["direction"].toDoubleList());
+        if(properties.hasProperty("direction")) dl->direction = toVector3d(properties["direction"].toDoubleList());
         ret = m_generator.Light(*dl, m_transformStack.top());
     } 
    
@@ -221,12 +221,12 @@ bool CSceneParser::parseMaterial(CTokenizer& tokenizer, CPropertyMap& properties
     if(!properties.hasProperty("name")) throw ParserException("Camera: Missing required field NAME");
     
     SMaterial mat(SMaterial::BASIC,  properties["name"].toStr());
-    if(properties.hasProperty("emission")) mat.emission.set(properties["emission"].toDoubleList());
-    if(properties.hasProperty("ambient")) mat.ambient.set(properties["ambient"].toDoubleList());
-    if(properties.hasProperty("diffuse")) mat.diffuse.set(properties["diffuse"].toDoubleList());
-    if(properties.hasProperty("specular")) mat.specular.set(properties["specular"].toDoubleList());
-    if(properties.hasProperty("specular_power")) mat.specularPower.set(properties["specular_power"].toDouble());
-    if(properties.hasProperty("texture")) mat.texture.set(properties["texture"].toStr());
+    if(properties.hasProperty("emission")) mat.emission = toVector3d(properties["emission"].toDoubleList());
+    if(properties.hasProperty("ambient")) mat.ambient = toVector3d(properties["ambient"].toDoubleList());
+    if(properties.hasProperty("diffuse")) mat.diffuse = toVector3d(properties["diffuse"].toDoubleList());
+    if(properties.hasProperty("specular")) mat.specular = toVector3d(properties["specular"].toDoubleList());
+    if(properties.hasProperty("specular_power")) mat.specularPower = properties["specular_power"].toDouble();
+    if(properties.hasProperty("texture")) mat.texture = properties["texture"].toStr();
 
     return m_generator.Material(mat, m_transformStack.top());
 }
@@ -258,10 +258,10 @@ bool CSceneParser::parseCamera(CTokenizer& tokenizer, CPropertyMap& properties) 
         ret = m_generator.Camera(*bc, m_transformStack.top());
     } else if (type == SCamera::ADVANCED) {
         SAdvancedCamera* ac = static_cast<SAdvancedCamera*>(cam);
-        if(properties.hasProperty("left")) ac->left.set(properties["left"].toDouble());
-        if(properties.hasProperty("right")) ac->right.set(properties["right"].toDouble());
-        if(properties.hasProperty("top")) ac->top.set(properties["top"].toDouble());        
-        if(properties.hasProperty("bottom")) ac->bottom.set(properties["bottom"].toDouble());
+        if(properties.hasProperty("left")) ac->left = properties["left"].toDouble();
+        if(properties.hasProperty("right")) ac->right = properties["right"].toDouble();
+        if(properties.hasProperty("top")) ac->top = properties["top"].toDouble();        
+        if(properties.hasProperty("bottom")) ac->bottom = properties["bottom"].toDouble();
         ret = m_generator.Camera(*ac, m_transformStack.top());
     }
 
@@ -347,7 +347,7 @@ STransfToken CSceneParser::getTransfToken(CTokenizer& tokenizer) {
 }
 
 Vector3d CSceneParser::toVector3d(std::vector<double> dblList) {
-    if(dblList.size() != 3) throw PropertyException("Not enough values in list");
+    if(dblList.size() != 3) throw ParserException("Not enough values in list");
     Vector3d tmp = Vector3d::Zero();
     for(unsigned int i = 0; i < dblList.size(); i ++) {
         tmp(i) = dblList[i];

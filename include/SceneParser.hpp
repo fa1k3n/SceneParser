@@ -2,8 +2,9 @@
 #define SCENEPARSER_HPP
 
 #include <ISceneGenerator.hpp>
+#include <../src/PrivTypes.hpp>
 #include <istream>
-#include <Tokenizer.hpp>
+#include <../src/Tokenizer.hpp>
 #include <vector>
 #include <stack>
 #include <set>

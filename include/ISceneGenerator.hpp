@@ -6,7 +6,7 @@
 #include <array>
 
 #include <Types.hpp>
-#include <Property.hpp>
+//#include <Property.hpp>
 
 struct SCamera {
     enum CameraType {
@@ -34,10 +34,10 @@ struct SBasicCamera : public SCamera {
 struct SAdvancedCamera : public SCamera {
     SAdvancedCamera(std::string n) : SCamera(CameraType::ADVANCED, n) {}
     SAdvancedCamera(const SAdvancedCamera& c): SCamera(c), left(c.left), right(c.right), top(c.top), bottom(c.bottom) {}
-    CProperty<double> left = 1;
-    CProperty<double> right = 1;
-    CProperty<double> top = 1;
-    CProperty<double> bottom = 1;
+    double left = 1;
+    double right = 1;
+    double top = 1;
+    double bottom = 1;
 };
 
 struct SMaterial {
@@ -54,14 +54,14 @@ struct SMaterial {
         specular(mat.specular),
         specularPower(mat.specularPower),
         texture(mat.texture) {}
-    CProperty<MaterialType> type;
-    CProperty<std::string> name;
-    CProperty<double, 3> emission = {{0, 0, 0}};
-    CProperty<double, 3> ambient = {{0, 0, 0}};
-    CProperty<double, 3> diffuse = {{0, 0, 0}};
-    CProperty<double, 3> specular = {{0, 0, 0}};
-    CProperty<double> specularPower = 0;
-    CProperty<std::string> texture;
+    MaterialType type;
+    std::string name;
+    Vector3d emission = {0, 0, 0};
+    Vector3d ambient = {0, 0, 0};
+    Vector3d diffuse = {0, 0, 0};
+    Vector3d specular = {0, 0, 0};
+    double specularPower = 0;
+    std::string texture;
 };
 
 struct SBasicMaterial : public SMaterial {
@@ -77,24 +77,24 @@ struct SLight {
     };
     SLight(LightType t = SLight::NONE, std::string n = "") : type(t), name(n) {}
     SLight(const SLight& l) : type(l.type), name(l.name), ambient(l.ambient), diffuse(l.diffuse), specular(l.specular) {}
-    CProperty<LightType> type;
-    CProperty<std::string> name;
-    CProperty<double, 3> ambient = {{0, 0, 0}};
-    CProperty<double, 3> diffuse    = {{0, 0, 0}};
-    CProperty<double, 3> specular = {{0, 0, 0}};
+    LightType type;
+    std::string name;
+    Vector3d ambient = {0, 0, 0};
+    Vector3d diffuse    = {0, 0, 0};
+    Vector3d specular = {0, 0, 0};
 };
 
 struct SPointLight : public SLight {
     SPointLight(std::string n) : SLight(SLight::POINT, n) {};
     SPointLight(const SPointLight& l) : SLight(l), position(l.position), attenuationCoefs(l.attenuationCoefs) {}
-    CProperty<double, 3> position = {{0, 0, 0}};
-    CProperty<double, 3> attenuationCoefs = {{1, 0, 0}};
+    Vector3d position = {0, 0, 0};
+    Vector3d attenuationCoefs = {1, 0, 0};
 };
 
 struct SDirectionalLight : public SLight {
     SDirectionalLight(std::string n) : SLight(SLight::DIRECTIONAL, n) {};
     SDirectionalLight(const SDirectionalLight& l) : SLight(l), direction(l.direction) {}
-    CProperty<double, 3> direction = {{0, 0, 0}};
+    Vector3d direction = {0, 0, 0};
 };
 
 struct SGeometry {
@@ -105,8 +105,8 @@ struct SGeometry {
     };
     SGeometry(GeometryType t, std::string n) : type(t), name(n) {}
     SGeometry(const SGeometry& g): type(g.type), name(g.name) {}
-    CProperty<GeometryType> type;
-    CProperty<std::string> name;
+    GeometryType type;
+    std::string name;
 };
 
 struct SSphere : public SGeometry {
@@ -128,9 +128,9 @@ struct SMesh : public SGeometry {
 
 struct SObject {
     SObject(std::string geom, std::string mat) : geometry(geom), material(mat) {}
-    CProperty<std::string> name;
-    CProperty<std::string> geometry;
-    CProperty<std::string> material;
+    std::string name;
+    std::string geometry;
+    std::string material;
 };
 
 struct SMisc {};

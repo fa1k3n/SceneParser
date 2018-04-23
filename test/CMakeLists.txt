@@ -16,6 +16,8 @@ else ()
 endif ()
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_SOURCE_DIR}/src")
+
 include_directories(${GTestSrc} ${GTestSrc}/include ${GMockSrc} ${GMockSrc}/include)
 
 cmake_policy(SET CMP0037 OLD)

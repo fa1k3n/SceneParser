@@ -30,13 +30,17 @@ set(SRC
   src/Tokenizer.cpp
 )
 
-set(INC
-    include/SceneParser.hpp
-    include/Tokenizer.hpp
+set(PUBLIC_INC
     include/ISceneGenerator.hpp
     include/Types.hpp
+    include/SceneParser.hpp
 )
 
-include_directories("include")
+set(PRIVATE_INC
+    src/Tokenizer.hpp
+    src/PrivTypes.hpp
+)
 
-add_library(scparser ${SRC} ${INC})
+include_directories(include src)
+
+add_library(scparser ${SRC} ${PUBLIC_INC} ${PRIVATE_INC})

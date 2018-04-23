@@ -35,13 +35,13 @@ public:
      }
      
     bool SaveLight(SLight& l,  Matrix4d& t) { 
-        if(l.type() == SLight::DIRECTIONAL) light = new SDirectionalLight(*static_cast<SDirectionalLight*>(&l));
-        else if(l.type() == SLight::POINT) light = new SPointLight(*static_cast<SPointLight*>(&l));
+        if(l.type == SLight::DIRECTIONAL) light = new SDirectionalLight(*static_cast<SDirectionalLight*>(&l));
+        else if(l.type == SLight::POINT) light = new SPointLight(*static_cast<SPointLight*>(&l));
         return true;
     }
     
     bool SaveMaterial(SMaterial &mat, Matrix4d& t) {
-        if(mat.type() == SMaterial::BASIC) material = new SBasicMaterial(*static_cast<SBasicMaterial*>(&mat));
+        if(mat.type == SMaterial::BASIC) material = new SBasicMaterial(*static_cast<SBasicMaterial*>(&mat));
         return true;
     }
     
@@ -58,8 +58,8 @@ public:
     
     bool SaveGeometry(SGeometry& geom, Matrix4d& t) {
        transform = t;
-        if(geom.type() == SGeometry::SPHERE) geometry = new SSphere(*static_cast<SSphere*>(&geom));
-        else if(geom.type() == SGeometry::MESH) geometry = new SMesh(*static_cast<SMesh*>(&geom));
+        if(geom.type == SGeometry::SPHERE) geometry = new SSphere(*static_cast<SSphere*>(&geom));
+        else if(geom.type == SGeometry::MESH) geometry = new SMesh(*static_cast<SMesh*>(&geom));
         return true;
     }
     
@@ -95,13 +95,6 @@ TEST(SceneParser, testConstructor) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
     ASSERT_TRUE(true);
-}
-
-bool equal(const std::vector<double>& a, const std::vector<double>& b) {
-    if(a.size() != b.size()) return false;
-    for(unsigned int i = 0; i <a.size(); i++)
-        if(a[i] != b[i]) return false;
-    return true;
 }
 
 TEST(SceneParserCamera, defaultCameraParsing) {
@@ -169,10 +162,10 @@ TEST(SceneParserCamera, advancedCameraDefaultParsing) {
     EXPECT_TRUE(cam != nullptr);
     
     // Check defaults
-    ASSERT_EQ(1, cam->left.get());
-    ASSERT_EQ(1, cam->right.get());
-    ASSERT_EQ(1, cam->top.get());
-    ASSERT_EQ(1, cam->bottom.get());
+    ASSERT_EQ(1, cam->left);
+    ASSERT_EQ(1, cam->right);
+    ASSERT_EQ(1, cam->top);
+    ASSERT_EQ(1, cam->bottom);
 }
 
 TEST(SceneParserCamera, advancedCameraParsing) {
@@ -193,10 +186,10 @@ TEST(SceneParserCamera, advancedCameraParsing) {
     EXPECT_TRUE(cam != nullptr);
     
     // Check defaults
-    ASSERT_EQ(2, cam->left.get());
-    ASSERT_EQ(3, cam->right.get());
-    ASSERT_EQ(4, cam->top.get());
-    ASSERT_EQ(5, cam->bottom.get());
+    ASSERT_EQ(2, cam->left);
+    ASSERT_EQ(3, cam->right);
+    ASSERT_EQ(4, cam->top);
+    ASSERT_EQ(5, cam->bottom);
 }
 
 TEST(SceneParserCamera, testMissingRequiredKey) {
@@ -218,9 +211,9 @@ TEST(SceneParserCamera, testTypeNotFirst) {
 TEST(SceneParserCamera, testArrayMissmatch) {
     TestSceneGenerator generator;
     CSceneParser parser(generator);
-    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Eye_point 0.8 }"), PropertyException);
-    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Look_point 0.8 }"), PropertyException);
-    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  up 0.8 }"), PropertyException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Eye_point 0.8 }"), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  Look_point 0.8 }"), ParserException);
+    EXPECT_THROW(parser.ParseScene("Camera { Type Basic Name foo  up 0.8 }"), ParserException);
 }
 
 TEST(SceneParserCamera, testUnknownKeyword) {
@@ -238,15 +231,15 @@ TEST(SceneParserMaterial, defaultMaterialParsing) {
     ASSERT_TRUE(success);
     SBasicMaterial* mat = generator.GetBasicMaterial();
     EXPECT_TRUE(mat != nullptr);
-    ASSERT_EQ(SMaterial::BASIC, mat->type());
-    ASSERT_STREQ("foo", mat->name().c_str());
+    ASSERT_EQ(SMaterial::BASIC, mat->type);
+    ASSERT_STREQ("foo", mat->name.c_str());
     
     // Check defaults
-    ASSERT_TRUE(equal(mat->emission.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(mat->ambient.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(mat->diffuse.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(mat->specular.toVector(), {0, 0, 0}));
-    ASSERT_EQ(0, mat->specularPower());
+    ASSERT_EQ(mat->emission, Vector3d(0, 0, 0));
+    ASSERT_EQ(mat->ambient, Vector3d(0, 0, 0));
+    ASSERT_EQ(mat->diffuse, Vector3d(0, 0, 0));
+    ASSERT_EQ(mat->specular, Vector3d(0, 0, 0));
+    ASSERT_EQ(0, mat->specularPower);
 }
 
 TEST(SceneParserCamera, testMaterialParsing) {
@@ -268,15 +261,15 @@ TEST(SceneParserCamera, testMaterialParsing) {
     ASSERT_TRUE(success);    
     SBasicMaterial* mat = generator.GetBasicMaterial();
     EXPECT_TRUE(mat != nullptr);
-    ASSERT_EQ(SMaterial::BASIC, mat->type.get());
-    ASSERT_STREQ("first_material", mat->name.get().c_str());
+    ASSERT_EQ(SMaterial::BASIC, mat->type);
+    ASSERT_STREQ("first_material", mat->name.c_str());
     
-    ASSERT_TRUE(equal(mat->emission.toVector(), {0.2, 0.3, 0.6}));
-    ASSERT_TRUE(equal(mat->ambient.toVector(), {0.3, 0.1, -0.7}));
-    ASSERT_TRUE(equal(mat->diffuse.toVector(), {0.2, -0.1, 0}));
-    ASSERT_TRUE(equal(mat->specular.toVector(), {0.2, -0.1, 0}));
-    ASSERT_EQ(7, mat->specularPower.get());
-    ASSERT_STREQ("foo", mat->texture().c_str());
+    ASSERT_EQ(mat->emission, Vector3d(0.2, 0.3, 0.6));
+    ASSERT_EQ(mat->ambient, Vector3d(0.3, 0.1, -0.7));
+    ASSERT_EQ(mat->diffuse, Vector3d(0.2, -0.1, 0));
+    ASSERT_EQ(mat->specular, Vector3d(0.2, -0.1, 0));
+    ASSERT_EQ(7, mat->specularPower);
+    ASSERT_STREQ("foo", mat->texture.c_str());
 }
 
 TEST(SceneParserLight, defaultPointLightParsing) {
@@ -287,15 +280,15 @@ TEST(SceneParserLight, defaultPointLightParsing) {
     ASSERT_TRUE(success);
     SPointLight* light = generator.GetPointLight();
     EXPECT_TRUE(light != nullptr);
-    ASSERT_EQ(SLight::POINT, light->type());
-    ASSERT_STREQ("foo", light->name().c_str());
+    ASSERT_EQ(SLight::POINT, light->type);
+    ASSERT_STREQ("foo", light->name.c_str());
     
     // Check defaults
-    ASSERT_TRUE(equal(light->ambient.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light->diffuse.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light->specular.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light->position.toVector(), {0, 0, 0}));
-    ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
+    ASSERT_EQ(light->ambient, Vector3d(0, 0, 0));
+    ASSERT_EQ(light->diffuse, Vector3d(0, 0, 0));
+    ASSERT_EQ(light->specular, Vector3d(0, 0, 0));
+    ASSERT_EQ(light->position, Vector3d(0, 0, 0));
+    ASSERT_EQ(light->attenuationCoefs, Vector3d(1, 0, 0));
 }
 
 TEST(SceneParserLight, testPointLightParsing) {
@@ -310,14 +303,14 @@ TEST(SceneParserLight, testPointLightParsing) {
     SPointLight* light = generator.GetPointLight();
     EXPECT_TRUE(light != nullptr);
     
-    ASSERT_EQ(SLight::POINT, light->type());
-    ASSERT_STREQ("foo", light->name().c_str());
+    ASSERT_EQ(SLight::POINT, light->type);
+    ASSERT_STREQ("foo", light->name.c_str());
     
-    ASSERT_TRUE(equal(light->ambient.toVector(), {1, 0, 0}));
-    ASSERT_TRUE(equal(light->diffuse.toVector(), {0, 1, 0}));
-    ASSERT_TRUE(equal(light->specular.toVector(), {0, 0, 1}));
-    ASSERT_TRUE(equal(light->position.toVector(), {1, 0, 0}));
-    ASSERT_TRUE(equal(light->attenuationCoefs.toVector(), {1, 0, 0}));
+    ASSERT_EQ(light->ambient, Vector3d(1, 0, 0));
+    ASSERT_EQ(light->diffuse, Vector3d(0, 1, 0));
+    ASSERT_EQ(light->specular, Vector3d(0, 0, 1));
+    ASSERT_EQ(light->position, Vector3d(1, 0, 0));
+    ASSERT_EQ(light->attenuationCoefs, Vector3d(1, 0, 1));
  }
 
 TEST(SceneParserLight, defaultDirectionalLightParsing) {
@@ -331,11 +324,11 @@ TEST(SceneParserLight, defaultDirectionalLightParsing) {
     SDirectionalLight *light = generator.GetDirectionalLight();
     EXPECT_TRUE(light != nullptr);
     
-    ASSERT_EQ(SLight::DIRECTIONAL, light->type());
-    ASSERT_STREQ("foo", light->name().c_str());
+    ASSERT_EQ(SLight::DIRECTIONAL, light->type);
+    ASSERT_STREQ("foo", light->name.c_str());
     
     // Check defaults, same
-   ASSERT_TRUE(equal(light->direction.toVector(), {0, 0, 0}));
+   ASSERT_EQ(light->direction, Vector3d(0, 0, 0));
 }
 
 TEST(SceneParserLight, testDirectionalLightParsing) {
@@ -348,7 +341,7 @@ TEST(SceneParserLight, testDirectionalLightParsing) {
 
     SDirectionalLight *light = generator.GetDirectionalLight();
     EXPECT_TRUE(light != nullptr);
-    ASSERT_TRUE(equal(light->direction.toVector(), {-1, 1, 0}));
+    ASSERT_EQ(light->direction, Vector3d(-1, 1, 0));
 }
 
 TEST(SceneParserLight, unknownLightTypeWillThrow) {
@@ -401,9 +394,9 @@ TEST(SceneParserGeometry, objectInstance) {
     ASSERT_TRUE(success);
     SObject* obj = generator.GetObject();
     EXPECT_TRUE(obj != nullptr);
-    ASSERT_STREQ("obj", obj->name().c_str());
-    ASSERT_STREQ("foo", obj->geometry().c_str());
-    ASSERT_STREQ("bar", obj->material().c_str());
+    ASSERT_STREQ("obj", obj->name.c_str());
+    ASSERT_STREQ("foo", obj->geometry.c_str());
+    ASSERT_STREQ("bar", obj->material.c_str());
 
 }
 
