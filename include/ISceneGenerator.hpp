@@ -18,7 +18,7 @@ struct SCamera {
 
     CameraType type;
     std::string name;
-    Vector3d eyePoint = {0, 0, -1};
+    Vector3d eyePoint = {0, 0, -1.0};
     Vector3d lookPoint = {0, 0, 0};
     Vector3d up            = {0.0, 1.0, 0.0};
     double distanceImagePlane = 3;

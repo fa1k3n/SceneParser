@@ -1,18 +1,31 @@
 #include <SceneParser.hpp>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 class ExampleGenerator : public ISceneGenerator {
     bool Camera(SCamera& cam, Matrix4d& transf) {
-        cout << "=> CAMERA\n";
+        cout << "=> CAMERA #" << m_cameras.size() << std::endl;
+        m_cameras.push_back(cam);
         string type = cam.type == SCamera::BASIC ? "basic" : "advanced";
-        cout << "\tType: " << type << std::endl;
-        cout << "\tName: " << cam.name << std::endl;
-        cout << "\tEyepoint: " << Vector3dToStr(cam.eyePoint) << std::endl;
-        cout << "\tLookpoint: " << Vector3dToStr(cam.lookPoint) << std::endl;
-        cout << "\tUp: " << Vector3dToStr(cam.up) << std::endl;
-
+        cout << setw(20) << std::right << "Type: " << type << std::endl;
+        cout << setw(20) << std::right << "Name: " << cam.name << std::endl;
+        cout << setw(20) << std::right <<  "Eyepoint: "  << cam.eyePoint.transpose()   << std::endl;
+        cout << setw(20) << std::right << "Lookpoint: " << cam.lookPoint.transpose() << std::endl;
+        cout << setw(20) << std::right << "Up: " << cam.up.transpose() << std::endl;
+        if(cam.type == SCamera::BASIC) {
+            SBasicCamera* c = static_cast<SBasicCamera*>(&cam);
+            cout << setw(20) << std::right << "Field of view: " << c->fov << std::endl;
+            cout << setw(20) << std::right << "Aspect ratio: " << c->aspectRatio << std::endl;
+        } else {
+            SAdvancedCamera* c = static_cast<SAdvancedCamera*>(&cam);
+            cout << setw(20) << std::right << "Left: " << c->left << std::endl;
+            cout << setw(20) << std::right << "Right: " << c->right << std::endl;
+            cout << setw(20) << std::right << "Top: " << c->top << std::endl;
+            cout << setw(20) << std::right << "Bottom: " << c->bottom << std::endl;
+        }
         return true;
     }
 
@@ -36,17 +49,13 @@ class ExampleGenerator : public ISceneGenerator {
         return true;
     }
      
-     string Vector3dToStr(Vector3d vect) {
-         std::stringstream buffer;
-        buffer << "(" << vect[0] << "," << vect[1] << "," << vect[2] <<")";
-        return buffer.str();
-     }
+     std::vector<SCamera> m_cameras;
 };
 
 int main(void) {
     ExampleGenerator generator;
     CSceneParser parser(generator);
-    parser.ParseScene("camera { type basic name foo } ");
+    parser.ParseScene("camera { type basic name foo } camera { type advanced name bar }");
     return 0;
 }
 
