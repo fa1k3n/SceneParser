@@ -33,6 +33,7 @@ class ExampleGenerator : public ISceneGenerator {
     }
 
     bool Material(SMaterial& mat, Matrix4d& transf) {
+        m_materials.insert( std::map<std::string, SMaterial>::value_type (mat.name, mat));
         return true;
     }
 
@@ -41,11 +42,6 @@ class ExampleGenerator : public ISceneGenerator {
     }
 
     bool Geometry(SGeometry& geom, Matrix4d& transf) {
-       /* cout << "=> GEOMETRY #" << m_geometries.size() << std::endl;
-        m_geometries.push_back(geom);
-        string type = geom.type == SGeometry::MESH ? "mesh" : "sphere";
-        cout << setw(20) << std::right << "Type: " << type << std::endl;
-        cout << setw(20) << std::right << "Name: " << geom.name << std::endl;*/
         m_geometries.insert( std::map<std::string, SGeometry>::value_type (geom.name, geom));
         return true;
     }
@@ -56,9 +52,14 @@ class ExampleGenerator : public ISceneGenerator {
         cout << setw(20) << std::right << "Name: " << obj.name << std::endl;
         cout << setw(20) << std::right << "Geometry: " << std::endl;
         SGeometry& geom = m_geometries.find(obj.geometry)->second;
-         string type = geom.type == SGeometry::MESH ? "mesh" : "sphere";
+        string type = geom.type == SGeometry::MESH ? "mesh" : "sphere";
         cout << setw(24) << std::right << "Type: " << type << std::endl;
         cout << setw(24) << std::right << "Name: " << geom.name << std::endl;
+        cout << setw(20) << std::right << "Material: " << std::endl;
+        SMaterial& mat = m_materials.find(obj.material)->second;
+        type = mat.type == SMaterial::BASIC ? "basic" : "unknown";
+        cout << setw(24) << std::right << "Type: " << type << std::endl;
+        cout << setw(24) << std::right << "Name: " << mat.name << std::endl;
         return true;
     }
 
@@ -69,6 +70,7 @@ class ExampleGenerator : public ISceneGenerator {
      std::vector<SCamera> m_cameras;
      std::vector<SObject> m_objects;
      std::map<std::string, SGeometry> m_geometries;
+     std::map<std::string, SMaterial> m_materials;
 };
 
 int main(void) {
