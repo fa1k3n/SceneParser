@@ -1,3 +1,4 @@
+// Camera
 Camera
     {
         Type                    Basic
@@ -11,7 +12,6 @@ Camera
         DISTANCE_IMAGE_PLANE    5
     }
 
-// lights
     Light
     {
         Type                Point
@@ -50,7 +50,6 @@ Camera
     }
     
 		  
-// materials
     Material
     {
         Type            Basic
@@ -88,7 +87,6 @@ Camera
         Specular_Power  30
     }
 
-// geometry
     Geometry
     {
         Type            Mesh
@@ -126,8 +124,6 @@ Camera
     }
 
 
-// objects
-    // sphere
     PUSH_TRANSFORM
 		ROTATE 1 0 0 90
         SCALE 4 4 4
@@ -140,7 +136,6 @@ Camera
         }
     POP_TRANSFORM
 
-    // back
     PUSH_TRANSFORM
         TRANSLATE 0 0 -10
         SCALE 10 10 10
@@ -152,7 +147,6 @@ Camera
         }
     POP_TRANSFORM
 
-    // top
     PUSH_TRANSFORM
         TRANSLATE 0 10 0
         ROTATE 1 0 0 90  
@@ -165,7 +159,6 @@ Camera
         }
     POP_TRANSFORM
 
-    // bottom
     PUSH_TRANSFORM
         TRANSLATE 0 -10 0
         ROTATE 1 0 0 -90
@@ -178,7 +171,6 @@ Camera
         }
     POP_TRANSFORM
 
-    // left
     PUSH_TRANSFORM
         TRANSLATE -10 0 0
         ROTATE 0 1 0 90
@@ -191,7 +183,6 @@ Camera
         }
     POP_TRANSFORM
 
-    // right
     PUSH_TRANSFORM
         TRANSLATE 10 0 0
         ROTATE 0 1 0 -90

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <map>
 
 using namespace std;
 class ExampleGenerator : public ISceneGenerator {
@@ -16,6 +17,7 @@ class ExampleGenerator : public ISceneGenerator {
         cout << setw(20) << std::right <<  "Eyepoint: "  << cam.eyePoint.transpose()   << std::endl;
         cout << setw(20) << std::right << "Lookpoint: " << cam.lookPoint.transpose() << std::endl;
         cout << setw(20) << std::right << "Up: " << cam.up.transpose() << std::endl;
+        cout << setw(20) << std::right << "Distance image plane: " << cam.distanceImagePlane << std::endl;
         if(cam.type == SCamera::BASIC) {
             SBasicCamera* c = static_cast<SBasicCamera*>(&cam);
             cout << setw(20) << std::right << "Field of view: " << c->fov << std::endl;
@@ -39,15 +41,24 @@ class ExampleGenerator : public ISceneGenerator {
     }
 
     bool Geometry(SGeometry& geom, Matrix4d& transf) {
-        cout << "=> GEOMETRY #" << m_geometries.size() << std::endl;
+       /* cout << "=> GEOMETRY #" << m_geometries.size() << std::endl;
         m_geometries.push_back(geom);
         string type = geom.type == SGeometry::MESH ? "mesh" : "sphere";
         cout << setw(20) << std::right << "Type: " << type << std::endl;
-        cout << setw(20) << std::right << "Name: " << geom.name << std::endl;
+        cout << setw(20) << std::right << "Name: " << geom.name << std::endl;*/
+        m_geometries.insert( std::map<std::string, SGeometry>::value_type (geom.name, geom));
         return true;
     }
 
      bool Object(SObject& obj, Matrix4d& transf) {
+        cout << "=> OBJECT #" << m_objects.size() << std::endl;
+        m_objects.push_back(obj);
+        cout << setw(20) << std::right << "Name: " << obj.name << std::endl;
+        cout << setw(20) << std::right << "Geometry: " << std::endl;
+        SGeometry& geom = m_geometries.find(obj.geometry)->second;
+         string type = geom.type == SGeometry::MESH ? "mesh" : "sphere";
+        cout << setw(24) << std::right << "Type: " << type << std::endl;
+        cout << setw(24) << std::right << "Name: " << geom.name << std::endl;
         return true;
     }
 
@@ -56,19 +67,23 @@ class ExampleGenerator : public ISceneGenerator {
     }
      
      std::vector<SCamera> m_cameras;
-     std::vector<SGeometry> m_geometries;
+     std::vector<SObject> m_objects;
+     std::map<std::string, SGeometry> m_geometries;
 };
 
 int main(void) {
     ExampleGenerator generator;
     CSceneParser parser(generator);
-    std::ifstream stream("ex1.scene");
-    parser.ParseScene("camera { type basic name foo } geometry { type mesh name bar tri 0 1 2 tri 2 3 4 }");
-    /*try {
+    std::ifstream stream;
+    stream.open ("../examples/ex1.scene", std::ifstream::in);
+      
+    try {
         parser.ParseScene(stream);
     } catch (ParserException e) {
         std::cout << "Something when wrong: " << e.what() << std::endl;
-    }*/
+    }
+    
+    stream.close();
         return 0;
 }
 

@@ -14,15 +14,16 @@ void CTokenizer::getLexemesFromStream(std::istream& tokstream) {
      char c;
      std::string str;
      while(tokstream.get(c)) {
-         // Skip whitespaces
-         if(c == ' ')
+         // Skip whitespaces and newlines
+         if(c == ' ' || c == '\n')
             continue;
+         
          tokstream.unget();
-
          if(c == '/' && ((char)tokstream.peek() == '/' || (char)tokstream.peek() == '*')) {
               skipComment(tokstream);
              continue;
          }
+  
          
          // Get the word
          std::string word;
@@ -58,6 +59,7 @@ bool CTokenizer::getNextToken(std::unique_ptr<SToken>* tok) {
         return false;
     
     auto value = m_lexemes.front(); m_lexemes.pop_front();
+    numHandledTokens ++;
     return tokenizeLexeme(value, tok);
 }
 

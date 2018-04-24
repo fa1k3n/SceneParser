@@ -6,6 +6,8 @@
 #include <memory>
 #include <sstream>
 #include <iterator>
+#include <sstream>
+#include <string>
 
 #include "Types.hpp"
 
@@ -30,8 +32,8 @@ struct SToken {
    
     SToken(TokenType tt = NONE) : type(tt) {}
     
-    static const char* toStr(TokenType t) {
-        return "";
+    virtual std::string toStr() {
+        return TokenStrings[type];
     }
     
     TokenType type;
@@ -40,21 +42,45 @@ struct SToken {
 struct SKeywordToken : public SToken {
     SKeywordToken(std::string value) : SToken(SToken::KEYWORD),  str(value) {};
     std::string str;
+    
+    std::string toStr() override {
+        std::ostringstream oss;
+        oss << "<" << TokenStrings[type] << ", " << str << ">";
+        return oss.str();
+    }
 };
 
 struct SIdToken : public SToken {
     SIdToken(std::string value) : SToken(SToken::ID),  str(value) {};
     std::string str;
+    
+    std::string toStr() override {
+        std::ostringstream oss;
+        oss << "<" << TokenStrings[type] << ", " << str << ">";
+        return oss.str();
+    }
 };
 
 struct SSymToken : public SToken {
     SSymToken(std::string value) : SToken(SToken::SYM), str(value) {};
     std::string str;
+    
+    std::string toStr() override {
+        std::ostringstream oss;
+        oss << "<" << TokenStrings[type] << ", " << str << ">";
+        return oss.str();
+    }
 };
 
 struct SConstToken : public SToken {
     SConstToken(double v) : SToken(SToken::CONST) , val(v) {}
     double val;
+    
+    std::string toStr() override {
+        std::ostringstream oss;
+        oss << "<" << TokenStrings[type] << ", " << val << ">";
+        return oss.str();
+    }
 };
 
 struct STransfToken: public SToken {
@@ -70,6 +96,12 @@ struct STransfToken: public SToken {
     
     STransfToken(TransfTypeID ttid) : SToken(SToken::TRANSF), id(ttid) {};
     TransfTypeID id;
+    
+    std::string toStr() override {
+        std::ostringstream oss;
+        oss << "<" << TokenStrings[type] << ", " << id << ">";
+        return oss.str();
+    }
 };
 
 class CTokenizer {
@@ -80,6 +112,7 @@ public:
     bool getNextToken(std::unique_ptr<SToken>* tok);
     SToken::TokenType peekNextToken();
     bool hasMoreTokens() { return m_lexemes.size(); }
+    int getCurrentPos() { return numHandledTokens; }
 private:
     void getLexemesFromStream(std::istream& tokstream);
     bool skipComment(std::istream& tokstream);
@@ -88,6 +121,7 @@ private:
     bool isTransform(std::string lexeme);
 
     std::list<std::string> m_lexemes;
+    int numHandledTokens = 0;
     
     std::list<std::string> keywords = {
         "camera",

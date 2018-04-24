@@ -46,7 +46,13 @@ bool CSceneParser::ParseScene(std::istream& scene) {
             }
         } else if(type == SToken::TRANSF) {
             handleTransf(tokenizer);
-        } else throw ParserException("Unexpected token of type %s",  SToken::toStr(type));
+        } else {
+            std::unique_ptr<SToken> tok;
+            tokenizer.getNextToken(&tok);
+            std::ostringstream oss;
+            oss << "Unexpected token of type " << tok->toStr() << " at pos " << tokenizer.getCurrentPos();
+            throw ParserException(oss.str().c_str());
+        }
    }
     return true;
 }

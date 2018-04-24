@@ -75,7 +75,7 @@ TEST(Tokenizer, commentsAreSkipped) {
     }
     
     {
-        CTokenizer toks("// This is a row comment\nfoo");
+        CTokenizer toks("// This is a row comment\n foo");
         std::unique_ptr<SToken> tok;
         ASSERT_TRUE(toks.getNextToken(&tok));
          auto idt = static_cast<SIdToken*>(tok.get());
@@ -111,4 +111,14 @@ TEST(Tokenizer, testPeek) {
     CTokenizer tokenizer("foo");
     ASSERT_EQ(SToken::ID, tokenizer.peekNextToken());
     ASSERT_EQ(SToken::ID, tokenizer.peekNextToken());
+}
+
+TEST(Tokenizer, testEmptyLine) {
+    CTokenizer tokenizer("foo \n" 
+    "// Comment \n"
+    "camera");
+    ASSERT_EQ(SToken::ID, tokenizer.peekNextToken());
+    std::unique_ptr<SToken> tok;
+    tokenizer.getNextToken(&tok);
+    ASSERT_EQ(SToken::KEYWORD, tokenizer.peekNextToken());
 }
