@@ -6,7 +6,6 @@
 #include <array>
 
 #include <Types.hpp>
-//#include <Property.hpp>
 
 struct SCamera {
     enum CameraType {
@@ -123,7 +122,7 @@ struct SMesh : public SGeometry {
     SMesh(std::string n) : SGeometry(SGeometry::MESH, n) {}
     SMesh(const SMesh& mesh) : SGeometry(mesh), vertices(mesh.vertices), tri(mesh.tri) {}
     std::vector<SVertex> vertices;
-    std::vector<Vector3d> tri;
+    std::vector<std::array<int, 3>> tri;
 };
 
 struct SObject {

@@ -132,7 +132,13 @@ bool CSceneParser::readBlock(CTokenizer& tokenizer, CPropertyMap& map) {
                     auto name = getIdToken(tokenizer).str;
                     SPropertyValue prop;
                     readPropertyValue(tokenizer, prop);
-                    map[name] =  prop;
+                    // TRI is a special case as it might occure several times in a
+                    // given block
+                    if(name == "tri") {
+                        auto tmp = prop.toDoubleList();
+                        map[name] <<  tmp[0] << tmp[1] << tmp[2];
+                    } else
+                        map[name] =  prop;
                 }
                  break;
                       
@@ -289,7 +295,15 @@ bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties
     bool ret = false;
       if(type == SGeometry::MESH) {
         SMesh* mesh = static_cast<SMesh*>(geom);
-        if(properties.hasProperty("tri")) mesh->tri.push_back(toVector3d(properties["tri"].toDoubleList()));
+        if(properties.hasProperty("tri")) {
+            auto tmp = properties["tri"].toDoubleList();
+            for(unsigned int i = 0; i < tmp.size(); ) {
+                int v1 = tmp[i++];
+                int v2 = tmp[i++];
+                int v3 = tmp[i++];
+                mesh->tri.push_back({v1, v2, v3});
+            }
+        }
         if(properties.hasProperty("vertices")) {
             auto verts = properties["vertices"].toMapList();
             for(unsigned int i = 0; i < verts.size(); i++ ) {

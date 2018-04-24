@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 #include <vector>
 
 using namespace std;
@@ -38,6 +39,11 @@ class ExampleGenerator : public ISceneGenerator {
     }
 
     bool Geometry(SGeometry& geom, Matrix4d& transf) {
+        cout << "=> GEOMETRY #" << m_geometries.size() << std::endl;
+        m_geometries.push_back(geom);
+        string type = geom.type == SGeometry::MESH ? "mesh" : "sphere";
+        cout << setw(20) << std::right << "Type: " << type << std::endl;
+        cout << setw(20) << std::right << "Name: " << geom.name << std::endl;
         return true;
     }
 
@@ -50,12 +56,19 @@ class ExampleGenerator : public ISceneGenerator {
     }
      
      std::vector<SCamera> m_cameras;
+     std::vector<SGeometry> m_geometries;
 };
 
 int main(void) {
     ExampleGenerator generator;
     CSceneParser parser(generator);
-    parser.ParseScene("camera { type basic name foo } camera { type advanced name bar }");
-    return 0;
+    std::ifstream stream("ex1.scene");
+    parser.ParseScene("camera { type basic name foo } geometry { type mesh name bar tri 0 1 2 tri 2 3 4 }");
+    /*try {
+        parser.ParseScene(stream);
+    } catch (ParserException e) {
+        std::cout << "Something when wrong: " << e.what() << std::endl;
+    }*/
+        return 0;
 }
 

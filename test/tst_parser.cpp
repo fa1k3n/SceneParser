@@ -383,7 +383,7 @@ TEST(SceneParserGeometry, meshGeometry) {
     ASSERT_EQ(mesh->vertices[2].n,  Vector3d(0, -1, 1));
     ASSERT_EQ(mesh->vertices[2].tc,  Vector3d(0, 0, 0));
     
-    ASSERT_EQ(mesh->tri[0], Vector3d(0, 1, 2));
+    ASSERT_THAT(mesh->tri[0], ElementsAre(0, 1, 2));
 }
 
 TEST(SceneParserGeometry, objectInstance) {
@@ -507,4 +507,15 @@ TEST(SceneTransform, basicPopTransf) {
     ASSERT_TRUE(success);
     auto mat = generator.GetTransform();
     ASSERT_TRUE(mat.isApprox(Matrix4d::Identity()));
+}
+
+TEST(SceneGeometry, multiTri) {
+   NiceMock< TestSceneGenerator> generator;
+    CSceneParser parser(generator);
+
+    bool success = parser.ParseScene(" Geometry { type mesh name foo tri 0 1 2 tri 1 2 3 } ");    
+    ASSERT_TRUE(success);
+    auto mesh = generator.GetMesh();
+    ASSERT_THAT(mesh->tri[0], ElementsAre(0, 1, 2));
+    ASSERT_THAT(mesh->tri[1], ElementsAre(1, 2, 3));
 }
