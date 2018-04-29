@@ -5,13 +5,26 @@ compiler:
     - gcc
 dist: xenial
 
-script:
+before_install:
+    - sudo apt-add-repository --yes ppa:beineri/opt-qt-5.10.0-xenial
     - sudo apt-get -qq update
     - sudo apt-get install -y cmake libeigen3-dev
     - sudo pip install --user cpp-coveralls
+
+install:
+    - sudo apt-get install -y qt510base qt510quickcontrols2 mesa-common-dev
+
+before_script:
+    - QTDIR="/opt/qt510"
+    - PATH="$QTDIR/bin:$PATH"
+    - source /opt/qt510/bin/qt510-env.sh
     - mkdir build && cd build
-    - cmake -DCOVERAGE=1 -DEIGEN3_INCLUDE_DIRS=/usr/include/eigen3/  ..
+    - cmake -DCOVERAGE=1 -DEIGEN3_INCLUDE_DIRS=/usr/include/eigen3/ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/qt510/lib/cmake ..
+
+script:    
     - make && make build-tests && make test
+    - make examples
+
 after_success:
     - cd ..
     - coveralls --root . -e build/test -e test -E ".*gtest.*" -E ".*CMakeFiles.*" 

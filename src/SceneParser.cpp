@@ -192,8 +192,15 @@ bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
     SLight* light;
     
     std::set<std::string> validKeywords = {"name", "type", "ambient", "diffuse", "specular", "position", "attenuation_coefs", "direction"};
-    if(!checkKeywords(properties, validKeywords)) throw ParserException("Light: unknown keyword");
-    
+    //if(!checkKeywords(properties, validKeywords)) throw ParserException("Light: unknown keyword");
+    for(auto keyw : properties) {
+        if(validKeywords.find(keyw.first) == validKeywords.end()) {
+            std::ostringstream oss;
+            oss << "Light, unknown property " << keyw.first;
+            throw ParserException(oss.str().c_str());
+        }
+    }
+
     if(properties.first() != "type") throw ParserException("Light: TYPE field missing or not first in block");
     if(!properties.hasProperty("name")) throw ParserException("Light: Missing required field NAME");
     
