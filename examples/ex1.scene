@@ -74,3 +74,19 @@ Camera
         Type            Basic
         Name            Green_Material
     }
+
+    Geometry
+    {
+        Type            Mesh
+        Name            Wall
+
+    VERTICES { P -1 1 0  N 0 0 1 }
+
+        TRI     0 5 1
+    }
+
+    Geometry
+    {
+        Type            sphere
+        Name            mySphere
+    }

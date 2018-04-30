@@ -11,5 +11,7 @@
         <file>resources/images/light.png</file>
         <file>resources/images/material.png</file>
         <file>Material.qml</file>
+        <file>Geometry.qml</file>
+        <file>resources/images/geometry.png</file>
     </qresource>
 </RCC>

@@ -12,6 +12,7 @@ Window {
         if (reg === "camera") return "lightgreen"
         else if (reg === "light") return "lightblue"
         else if (reg === "material") return "lightcoral"
+        else if (reg === "geometry") return "lemonchiffon"
         return "black"
     }
 
@@ -48,6 +49,17 @@ Window {
             icon: "resources/images/material.png"
             delegate: Material {
                 color: colorFromType("material")
+            }
+        }
+
+        GroupView {
+            id: geometries
+            model: sceneModel.geometries
+            width: root.width
+            title: "Geometries"
+            icon: "resources/images/geometry.png"
+            delegate: Geometry {
+                color: colorFromType("geometry")
             }
         }
     }

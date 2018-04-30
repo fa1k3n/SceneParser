@@ -47,6 +47,39 @@ private:
     QList<SMaterial*> m_materials;
 };
 
+class GeometryModel : public QAbstractListModel {
+    Q_OBJECT
+ public:
+    GeometryModel(QObject* parent = 0) : QAbstractListModel(parent) {}
+    virtual ~GeometryModel() {}
+
+    enum GeometryRoles {
+        NameRole = Qt::UserRole + 1
+    };
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const { return m_geometries.count(); }
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const {
+        SGeometry* geom = m_geometries[index.row()];
+        if (role == NameRole) return QVariant::fromValue(QString(geom->name.c_str()));
+        return QVariant();
+    }
+
+    void AddGeometry(SGeometry& g) {
+        emit beginInsertRows(createIndex(m_geometries.count(), 0), m_geometries.count(), m_geometries.count());
+        m_geometries.append(new SGeometry(g));
+        emit endInsertRows();
+    }
+protected:
+    QHash<int, QByteArray> roleNames() const {
+        QHash<int, QByteArray> roles;
+        roles[NameRole] = "name";
+         return roles;
+    }
+private:
+    QList<SGeometry*> m_geometries;
+};
+
 class LightsModel : public QAbstractListModel {
    Q_OBJECT
 public:
@@ -127,9 +160,10 @@ private:
 
 class SceneModel : public QObject, public ISceneGenerator {
    Q_OBJECT
-   Q_PROPERTY(LightsModel* lights READ lights NOTIFY lightsChanged);
-   Q_PROPERTY(CamerasModel* cameras READ cameras NOTIFY camerasChanged);
-   Q_PROPERTY(MaterialsModel* materials READ materials NOTIFY materialsChanged);
+   Q_PROPERTY(LightsModel* lights READ lights NOTIFY lightsChanged)
+   Q_PROPERTY(CamerasModel* cameras READ cameras NOTIFY camerasChanged)
+   Q_PROPERTY(MaterialsModel* materials READ materials NOTIFY materialsChanged)
+   Q_PROPERTY(GeometryModel* geometries READ geometries NOTIFY geometriesChanged)
 
 public:
     SceneModel(std::string modelFile, QObject* parent = 0);
@@ -138,11 +172,13 @@ public:
     LightsModel* lights() { return &m_lights; }
     CamerasModel* cameras() { return &m_cameras; }
     MaterialsModel* materials() { return &m_materials; }
+    GeometryModel* geometries() { return &m_geometries; }
 
 signals:
     void lightsChanged();
     void camerasChanged();
     void materialsChanged();
+    void geometriesChanged();
 
 protected:
 
@@ -162,6 +198,7 @@ protected:
     }
 
     bool Geometry(SGeometry& geom, Matrix4d& transf) {
+        m_geometries.AddGeometry(geom);
         return true;
     }
 
@@ -177,5 +214,6 @@ private:
      CamerasModel m_cameras;
      LightsModel m_lights;
      MaterialsModel m_materials;
+     GeometryModel m_geometries;
 };
 #endif /* SCENEMODEL_HPP */
