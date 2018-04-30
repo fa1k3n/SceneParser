@@ -8,7 +8,7 @@ dist: xenial
 before_install:
     - sudo apt-add-repository --yes ppa:beineri/opt-qt-5.10.0-xenial
     - sudo apt-get -qq update
-    - sudo apt-get install -y cmake libeigen3-dev
+    - sudo apt-get install -y cmake libeigen3-dev cppcheck
     - sudo pip install --user cpp-coveralls
 
 install:
@@ -28,3 +28,5 @@ script:
 after_success:
     - cd ..
     - coveralls --root . -e build/test -e test -E ".*gtest.*" -E ".*CMakeFiles.*" 
+    - cppcheck --enable=all -I include/ -I src/ src/*.* test/*.cpp
+

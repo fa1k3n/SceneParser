@@ -5,7 +5,7 @@
 #include <vector>
 
 struct ImplicitTypeConversion : public std::exception {
-    ImplicitTypeConversion(std::string msg) : exception() , m_msg(msg) {}
+    explicit ImplicitTypeConversion(std::string msg) : exception() , m_msg(msg) {}
     const char* what() const throw() {
         return m_msg.c_str();
     }
@@ -15,7 +15,7 @@ struct ImplicitTypeConversion : public std::exception {
 };
 
 struct NonExistingProperty : public std::exception {
-    NonExistingProperty(std::string msg) : exception() , m_msg(msg) {}
+    explicit NonExistingProperty(std::string msg) : exception() , m_msg(msg) {}
     const char* what() const throw() {
         return m_msg.c_str();
     }
@@ -37,10 +37,10 @@ struct SPropertyValue {
         MAP_LIST
     };
     
-    SPropertyValue() : type(NONE) {}
-    SPropertyValue(double val) : type(DOUBLE) {m_double.push_back(val);}
-    SPropertyValue(std::string str) : type(STRING) {m_str.push_back(str);}
-    SPropertyValue(CPropertyMap& map) : type(MAP) {m_map.push_back(map);}
+    explicit SPropertyValue() : type(NONE) {}
+    explicit SPropertyValue(double val) : type(DOUBLE) {m_double.push_back(val);}
+    explicit SPropertyValue(std::string str) : type(STRING) {m_str.push_back(str);}
+    explicit SPropertyValue(CPropertyMap& map) : type(MAP) {m_map.push_back(map);}
 
     void operator=(double d) { 
         if(type != NONE && type != DOUBLE) 
@@ -132,8 +132,8 @@ private:
 
 class CPropertyMap {
 public:    
-    CPropertyMap() {}
-    CPropertyMap(const CPropertyMap& m) : m_props(m.m_props), m_firstKey(m.m_firstKey) {}
+    explicit CPropertyMap() {}
+    explicit CPropertyMap(const CPropertyMap& m) : m_props(m.m_props), m_firstKey(m.m_firstKey) {}
     std::string first() { return m_firstKey; }
     
     SPropertyValue& operator[](std::string name) {

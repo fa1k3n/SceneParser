@@ -30,7 +30,7 @@ struct SToken {
         "TRANSF"
     };
    
-    SToken(TokenType tt = NONE) : type(tt) {}
+    explicit SToken(TokenType tt = NONE) : type(tt) {}
     
     virtual std::string toStr() {
         return TokenStrings[type];
@@ -40,7 +40,7 @@ struct SToken {
 };
 
 struct SKeywordToken : public SToken {
-    SKeywordToken(std::string value) : SToken(SToken::KEYWORD),  str(value) {};
+    explicit SKeywordToken(std::string value) : SToken(SToken::KEYWORD),  str(value) {}
     std::string str;
     
     std::string toStr() override {
@@ -51,7 +51,7 @@ struct SKeywordToken : public SToken {
 };
 
 struct SIdToken : public SToken {
-    SIdToken(std::string value) : SToken(SToken::ID),  str(value) {};
+    explicit SIdToken(std::string value) : SToken(SToken::ID),  str(value) {}
     std::string str;
     
     std::string toStr() override {
@@ -62,7 +62,7 @@ struct SIdToken : public SToken {
 };
 
 struct SSymToken : public SToken {
-    SSymToken(std::string value) : SToken(SToken::SYM), str(value) {};
+    explicit SSymToken(std::string value) : SToken(SToken::SYM), str(value) {}
     std::string str;
     
     std::string toStr() override {
@@ -73,7 +73,7 @@ struct SSymToken : public SToken {
 };
 
 struct SConstToken : public SToken {
-    SConstToken(double v) : SToken(SToken::CONST) , val(v) {}
+    explicit SConstToken(double v) : SToken(SToken::CONST) , val(v) {}
     double val;
     
     std::string toStr() override {
@@ -94,7 +94,7 @@ struct STransfToken: public SToken {
         TRANSFORM
     };
     
-    STransfToken(TransfTypeID ttid) : SToken(SToken::TRANSF), id(ttid) {};
+    explicit STransfToken(TransfTypeID ttid) : SToken(SToken::TRANSF), id(ttid) {}
     TransfTypeID id;
     
     std::string toStr() override {
@@ -106,8 +106,8 @@ struct STransfToken: public SToken {
 
 class CTokenizer {
 public:
-    CTokenizer(std::string const &tokstr);
-    CTokenizer(std::istream& tokstream);
+    explicit CTokenizer(std::string const &tokstr);
+    explicit CTokenizer(std::istream& tokstream);
     virtual ~CTokenizer();
     bool getNextToken(std::unique_ptr<SToken>* tok);
     SToken::TokenType peekNextToken();

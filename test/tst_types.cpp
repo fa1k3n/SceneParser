@@ -21,7 +21,11 @@ TEST(SPropertyValueTest, noCastingOfTypes) {
     SPropertyValue mapProp(map);
     
     // Will try to cast to double which is not allowed
-    EXPECT_THROW(strProp = map, ImplicitTypeConversion);
+    try {
+        strProp = map;
+    } catch(ImplicitTypeConversion& e) {
+        EXPECT_STREQ("Trying to assign non-string to string property", e.what());
+    }
     EXPECT_THROW(doubleProp = "foo", ImplicitTypeConversion);
     EXPECT_THROW(mapProp = 3, ImplicitTypeConversion);
 }
@@ -73,6 +77,7 @@ TEST(SPropertyValueTest, stringList) {
     ASSERT_EQ(SPropertyValue::STRING_LIST, var.type);
     ASSERT_STREQ("foo", var.toStr(0).c_str());
     ASSERT_STREQ("bar", var.toStr(1).c_str());
+    ASSERT_STREQ("bar", var.toStrList()[1].c_str());
 }
 
 TEST(SPropertyValueTest, propertyMapList) {

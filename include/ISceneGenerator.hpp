@@ -12,8 +12,8 @@ struct SCamera {
         BASIC,
         ADVANCED
     };
-    SCamera(CameraType t, std::string n) : type(t), name(n) {}
-    SCamera(const SCamera& c) : type(c.type), name(c.name), eyePoint(c.eyePoint), lookPoint(c.lookPoint), up(c.up), distanceImagePlane(c.distanceImagePlane) {}
+    explicit SCamera(CameraType t, std::string n) : type(t), name(n) {}
+    explicit SCamera(const SCamera& c) : type(c.type), name(c.name), eyePoint(c.eyePoint), lookPoint(c.lookPoint), up(c.up), distanceImagePlane(c.distanceImagePlane) {}
 
     CameraType type;
     std::string name;
@@ -24,15 +24,15 @@ struct SCamera {
 };
 
 struct SBasicCamera : public SCamera {
-    SBasicCamera(std::string n) : SCamera(CameraType::BASIC, n), fov(90), aspectRatio(4.0/3.0) { }
-    SBasicCamera(const SBasicCamera& c) : SCamera(c), fov(c.fov), aspectRatio(c.aspectRatio) {}
+    explicit SBasicCamera(std::string n) : SCamera(CameraType::BASIC, n), fov(90), aspectRatio(4.0/3.0) { }
+    explicit SBasicCamera(const SBasicCamera& c) : SCamera(c), fov(c.fov), aspectRatio(c.aspectRatio) {}
     double fov;
     double aspectRatio;
 };
 
 struct SAdvancedCamera : public SCamera {
-    SAdvancedCamera(std::string n) : SCamera(CameraType::ADVANCED, n) {}
-    SAdvancedCamera(const SAdvancedCamera& c): SCamera(c), left(c.left), right(c.right), top(c.top), bottom(c.bottom) {}
+    explicit SAdvancedCamera(std::string n) : SCamera(CameraType::ADVANCED, n) {}
+    explicit SAdvancedCamera(const SAdvancedCamera& c): SCamera(c), left(c.left), right(c.right), top(c.top), bottom(c.bottom) {}
     double left = 1;
     double right = 1;
     double top = 1;
@@ -43,8 +43,8 @@ struct SMaterial {
     enum MaterialType {
         BASIC
     };
-    SMaterial(MaterialType t, std::string n) : type(t), name(n) {}
-    SMaterial(const SMaterial& mat) :
+    explicit SMaterial(MaterialType t, std::string n) : type(t), name(n) {}
+    explicit SMaterial(const SMaterial& mat) :
         type(mat.type), 
         name(mat.name), 
         emission(mat.emission), 
@@ -64,8 +64,8 @@ struct SMaterial {
 };
 
 struct SBasicMaterial : public SMaterial {
-    SBasicMaterial(std::string n) : SMaterial(SMaterial::BASIC, n) {}
-    SBasicMaterial(const SBasicMaterial& mat) : SMaterial(mat) {}
+    explicit SBasicMaterial(std::string n) : SMaterial(SMaterial::BASIC, n) {}
+    explicit SBasicMaterial(const SBasicMaterial& mat) : SMaterial(mat) {}
 };
 
 struct SLight {
@@ -74,8 +74,8 @@ struct SLight {
         POINT,
         DIRECTIONAL
     };
-    SLight(LightType t = SLight::NONE, std::string n = "") : type(t), name(n) {}
-    SLight(const SLight& l) : type(l.type), name(l.name), ambient(l.ambient), diffuse(l.diffuse), specular(l.specular) {}
+    explicit SLight(LightType t = SLight::NONE, std::string n = "") : type(t), name(n) {}
+    explicit SLight(const SLight& l) : type(l.type), name(l.name), ambient(l.ambient), diffuse(l.diffuse), specular(l.specular) {}
     LightType type;
     std::string name;
     Vector3d ambient = {0, 0, 0};
@@ -84,15 +84,15 @@ struct SLight {
 };
 
 struct SPointLight : public SLight {
-    SPointLight(std::string n) : SLight(SLight::POINT, n) {};
-    SPointLight(const SPointLight& l) : SLight(l), position(l.position), attenuationCoefs(l.attenuationCoefs) {}
+    explicit SPointLight(std::string n) : SLight(SLight::POINT, n) {}
+    explicit SPointLight(const SPointLight& l) : SLight(l), position(l.position), attenuationCoefs(l.attenuationCoefs) {}
     Vector3d position = {0, 0, 0};
     Vector3d attenuationCoefs = {1, 0, 0};
 };
 
 struct SDirectionalLight : public SLight {
-    SDirectionalLight(std::string n) : SLight(SLight::DIRECTIONAL, n) {};
-    SDirectionalLight(const SDirectionalLight& l) : SLight(l), direction(l.direction) {}
+    explicit SDirectionalLight(std::string n) : SLight(SLight::DIRECTIONAL, n) {}
+    explicit SDirectionalLight(const SDirectionalLight& l) : SLight(l), direction(l.direction) {}
     Vector3d direction = {0, 0, 0};
 };
 
@@ -102,14 +102,14 @@ struct SGeometry {
         MESH,
         SPHERE
     };
-    SGeometry(GeometryType t, std::string n) : type(t), name(n) {}
-    SGeometry(const SGeometry& g): type(g.type), name(g.name) {}
+    explicit SGeometry(GeometryType t, std::string n) : type(t), name(n) {}
+    explicit SGeometry(const SGeometry& g): type(g.type), name(g.name) {}
     GeometryType type;
     std::string name;
 };
 
 struct SSphere : public SGeometry {
-    SSphere(std::string n) : SGeometry(SGeometry::SPHERE, n) {}
+    explicit SSphere(std::string n) : SGeometry(SGeometry::SPHERE, n) {}
 };
 
 struct SVertex {
@@ -119,14 +119,14 @@ struct SVertex {
 };
 
 struct SMesh : public SGeometry {
-    SMesh(std::string n) : SGeometry(SGeometry::MESH, n) {}
-    SMesh(const SMesh& mesh) : SGeometry(mesh), vertices(mesh.vertices), tri(mesh.tri) {}
+    explicit SMesh(std::string n) : SGeometry(SGeometry::MESH, n) {}
+    explicit SMesh(const SMesh& mesh) : SGeometry(mesh), vertices(mesh.vertices), tri(mesh.tri) {}
     std::vector<SVertex> vertices;
     std::vector<std::array<int, 3>> tri;
 };
 
 struct SObject {
-    SObject(std::string geom, std::string mat) : geometry(geom), material(mat) {}
+    explicit SObject(std::string geom, std::string mat) : geometry(geom), material(mat) {}
     std::string name;
     std::string geometry;
     std::string material;

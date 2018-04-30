@@ -216,7 +216,7 @@ bool CSceneParser::parseLight(CTokenizer& tokenizer, CPropertyMap& properties) {
     if(properties.hasProperty("diffuse")) light->diffuse = toVector3d(properties["diffuse"].toDoubleList());
     if(properties.hasProperty("specular")) light->specular = toVector3d(properties["specular"].toDoubleList());
     
-    bool ret;
+    bool ret = false;
     if(type == SLight::POINT) {
         SPointLight* pl = static_cast<SPointLight*>(light);
         if(properties.hasProperty("position")) pl->position = toVector3d(properties["position"].toDoubleList());

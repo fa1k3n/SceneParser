@@ -17,6 +17,7 @@ struct ParserException : public std::exception {
         char tmp[500];
         sprintf(tmp, msg, args);
         m_msg = std::string(tmp);
+        va_end(args);
     }
     
     const char* what() const throw() {

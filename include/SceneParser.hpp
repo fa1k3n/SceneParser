@@ -11,7 +11,7 @@
 
 class CSceneParser {
 public:
-    CSceneParser(ISceneGenerator& generator);
+    explicit CSceneParser(ISceneGenerator& generator);
     bool ParseScene(std::istream& scene);
     bool ParseScene(std::string scene);
 private:

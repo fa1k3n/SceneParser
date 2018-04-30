@@ -12,7 +12,6 @@ CTokenizer::CTokenizer(std::istream& tokstream) {
 
 void CTokenizer::getLexemesFromStream(std::istream& tokstream) {
      char c;
-     std::string str;
      while(tokstream.get(c)) {
          // Skip whitespaces and newlines
          if(c == ' ' || c == '\n')
