@@ -75,18 +75,116 @@ Camera
         Name            Green_Material
     }
 
-    Geometry
-    {
-        Type            Mesh
-        Name            Wall
+//bla
+Geometry
+{
+    Type            Mesh
+    Name            Wall
 
-    VERTICES { P -1 1 0  N 0 0 1 }
+    VERTICES
+        { P -1 1 0  N 0 0 1 }     { P -0.5 1 0  N 0 0 1 }     { P 0 1 0  N 0 0 1 }     { P 0.5 1 0   N 0 0 1 }     { P 1 1 0  N 0 0 1 }
+        { P -1 0.5 0  N 0 0 1 }    { P -0.5 0.5 0  N 0 0 1 }    { P 0 0.5 0  N 0 0 1 }    { P 0.5 0.5 0   N 0 0 1 }    { P 1 0.5 0  N 0 0 1 }
+        { P -1 0 0  N 0 0 1 }     { P -0.5 0 0  N 0 0 1 }     { P 0 0 0  N 0 0 1 }     { P 0.5 0 0   N 0 0 1 }     { P 1 0 0  N 0 0 1 }
+        { P -1 -0.5 0  N 0 0 1 }   { P -0.5 -0.5 0  N 0 0 1 }   { P 0 -0.5 0  N 0 0 1 }   { P 0.5 -0.5 0   N 0 0 1 }   { P 1 -0.5 0  N 0 0 1 }
+        { P -1 -1 0  N 0 0 1 }    { P -0.5 -1 0  N 0 0 1 }    { P 0 -1 0  N 0 0 1 }    { P 0.5 -1 0   N 0 0 1 }    { P 1 -1 0  N 0 0 1 }
 
-        TRI     0 5 1
-    }
+    TRI     0 5 1           TRI     1 5 6
+    TRI     1 6 2           TRI     2 6 7
+    TRI     2 7 3           TRI     3 7 8
+    TRI     3 8 4           TRI     4 8 9
+    TRI     5 10 6          TRI     6 10 11
+    TRI     6 11 7          TRI     7 11 12
+    TRI     7 12 8          TRI     8 12 13
+    TRI     8 13 9          TRI     9 13 14
+    TRI     10 15 11        TRI     11 15 16
+    TRI     11 16 12        TRI     12 16 17
+    TRI     12 17 13        TRI     13 17 18
+    TRI     13 18 14        TRI     14 18 19
+    TRI     15 20 16        TRI     16 20 21
+    TRI     16 21 17        TRI     17 21 22
+    TRI     17 22 18        TRI     18 22 23
+    TRI     18 23 19        TRI     19 23 24
+}
 
-    Geometry
-    {
-        Type            sphere
-        Name            mySphere
-    }
+Geometry
+{
+    Type            sphere
+    Name            mySphere
+}
+// objects
+    // sphere
+    PUSH_TRANSFORM
+                ROTATE 1 0 0 90
+        SCALE 4 4 4
+
+        OBJECT
+        {
+            Name            crapola
+            Geometry        mySphere
+            Material        Ball_Material
+        }
+    POP_TRANSFORM
+
+    // back
+    PUSH_TRANSFORM
+        TRANSLATE 0 0 -10
+        SCALE 10 10 10
+        OBJECT
+        {
+            Name            test
+            Geometry        wall
+            Material        White_Material
+        }
+    POP_TRANSFORM
+
+    // top
+    PUSH_TRANSFORM
+        TRANSLATE 0 10 0
+        ROTATE 1 0 0 90
+        SCALE 10 10 10
+        OBJECT
+        {
+            Name            test
+            Geometry        wall
+            Material        White_Material
+        }
+    POP_TRANSFORM
+
+    // bottom
+    PUSH_TRANSFORM
+        TRANSLATE 0 -10 0
+        ROTATE 1 0 0 -90
+        SCALE 10 10 10
+        OBJECT
+        {
+            Name            test
+            Geometry        wall
+            Material        White_Material
+        }
+    POP_TRANSFORM
+
+    // left
+    PUSH_TRANSFORM
+        TRANSLATE -10 0 0
+        ROTATE 0 1 0 90
+        SCALE 10 10 10
+        OBJECT
+        {
+            Name            test
+            Geometry        wall
+            Material        red_Material
+        }
+    POP_TRANSFORM
+
+    // right
+    PUSH_TRANSFORM
+        TRANSLATE 10 0 0
+        ROTATE 0 1 0 -90
+        SCALE 10 10 10
+        OBJECT
+        {
+            Name            test
+            Geometry        wall
+            Material        Green_Material
+        }
+    POP_TRANSFORM

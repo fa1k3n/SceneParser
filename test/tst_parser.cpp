@@ -513,9 +513,10 @@ TEST(SceneGeometry, multiTri) {
    NiceMock< TestSceneGenerator> generator;
     CSceneParser parser(generator);
 
-    bool success = parser.ParseScene(" Geometry { type mesh name foo tri 0 1 2 tri 1 2 3 } ");    
+    bool success = parser.ParseScene(" Geometry { type mesh name foo  VERTICES { P -.1 1 0  N 0 0 1 }     { P -.1 1 0  N 0 0 1 }   { P -.5 1 0  N 0 0 1 } tri 0 1 2 tri 1 2 3 } ");
     ASSERT_TRUE(success);
     auto mesh = generator.GetMesh();
+    ASSERT_EQ(-0.1, mesh->vertices[1].p[0]);
     ASSERT_THAT(mesh->tri[0], ElementsAre(0, 1, 2));
     ASSERT_THAT(mesh->tri[1], ElementsAre(1, 2, 3));
 }
