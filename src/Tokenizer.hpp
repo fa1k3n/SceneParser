@@ -85,6 +85,7 @@ struct SConstToken : public SToken {
 
 struct STransfToken: public SToken {
     enum TransfTypeID {
+        NONE,
         PUSH,
         POP,
         LOAD,

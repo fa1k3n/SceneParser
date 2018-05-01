@@ -1,5 +1,5 @@
 #include <SceneParser.hpp>
-#include <Tokenizer.hpp>
+#include "Tokenizer.hpp"
 #include <sstream>
 #include <set>
 #include <Eigen/Geometry>
@@ -314,7 +314,7 @@ bool CSceneParser::parseGeometry(CTokenizer& tokenizer, CPropertyMap& properties
                 int v1 = tmp[i++];
                 int v2 = tmp[i++];
                 int v3 = tmp[i++];
-                mesh->tri.push_back({v1, v2, v3});
+                mesh->tri.push_back({{v1, v2, v3}});
             }
         }
         if(properties.hasProperty("vertices")) {

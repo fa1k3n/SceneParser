@@ -1,10 +1,8 @@
-  Light
-    {
-        Type                Point
-        Name                Light1
-        Position            -7 8 7
-    }
-Camera
+
+    // sphere in a box
+
+// cameras
+    Camera
     {
         Type                    Basic
         Name                    first_camera
@@ -17,26 +15,26 @@ Camera
         DISTANCE_IMAGE_PLANE    5
     }
 
-Camera
+// lights
+    Light
     {
-        Type                    Basic
-        Name                    second_camera
-        Eye_Point               0 0 40
-        Look_Point              0 0 0
-        Up                      0 1 0
-        
-        FOV                     60
-        Aspect_Ratio            1.33333
-        DISTANCE_IMAGE_PLANE    5
+        Type                Point
+        Name                Light1
+        Position            -7 8 7
+		ambient				0.8 0.8 0.8
+        diffuse             .4 .4 .4
+        specular            0.3 0.3 0.3
     }
-   
+
     Light
     {
         Type                Point
         Name                Light2
         Position            7 8 7
+        diffuse             0.4 0.4 0.4
+        specular            0.3 0.3 0.3
     }
-    
+
     Light
     {
         Type                Point
