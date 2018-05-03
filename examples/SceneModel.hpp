@@ -124,7 +124,11 @@ public:
         NameRole = Qt::UserRole + 1,
         EyePointRole = Qt::UserRole + 2,
         LookPointRole = Qt::UserRole + 3,
-        UpRole = Qt::UserRole + 4
+        UpRole = Qt::UserRole + 4,
+        TypeRole = Qt::UserRole + 5,
+        DistImgPlaneRole = Qt::UserRole + 6,
+        FovRole = Qt::UserRole + 7,
+        AspectRatioRole = Qt::UserRole + 8,
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const { return m_cameras.count(); }
@@ -135,6 +139,10 @@ public:
         else if(role == EyePointRole) return QVariant(vecToStr(cam->eyePoint));
         else if(role == LookPointRole) return QVariant(vecToStr(cam->lookPoint));
         else if(role == UpRole) return QVariant(vecToStr(cam->up));
+        else if(role == TypeRole) return QVariant(cam->type == 0 ? "basic" : "advanced");
+        else if(role == DistImgPlaneRole) return QVariant(cam->distanceImagePlane);
+        else if(role == FovRole) return QVariant(static_cast<SBasicCamera*>(cam)->fov);
+        else if(role == AspectRatioRole) return QVariant(static_cast<SBasicCamera*>(cam)->aspectRatio);
 
         return QVariant();
     }
@@ -151,6 +159,10 @@ protected:
         roles[EyePointRole] = "eyePoint";
         roles[LookPointRole] = "lookPoint";
         roles[UpRole] = "up";
+        roles[TypeRole] = "type";
+        roles[DistImgPlaneRole] = "distanceImagePlane";
+        roles[FovRole] = "fov";
+        roles[AspectRatioRole] = "aspectRatio";
 
          return roles;
     }

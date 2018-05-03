@@ -1,4 +1,5 @@
 import QtQuick 2.9
+import QtQml 2.2
 
 Item {
     id: root
@@ -15,44 +16,75 @@ Item {
     Rectangle {
         id: item
         width: root.width
-        height: header.height + secondRow.height
+        height: 60
         radius: 5
         color: root.color
 
-        property bool expanded: false
-
-        MouseArea {
-            anchors.fill: item
-            onPressed: item.expanded = !item.expanded
-        }
-
-        Text {
-            id: header
-            text: name
-            anchors.topMargin: 5
-            leftPadding: 10
-        }
-
         Column {
-            id: secondRow
-            visible: item.expanded
-            height: header.height * item.expanded
-            //height: 40
-            anchors.left: header.right
-
-            Vector3d {
-                title: "Eye point"
-                value: eyePoint
+            id: col
+            anchors.fill: parent
+            Row {
+                height: 15
+                anchors {
+                    left: col.left
+                    right: col.right
+                }
+                Text {
+                    text: name
+                    leftPadding: 10
+                }
+                Text {
+                    text: type
+                    leftPadding: 10
+                }
             }
 
-            Vector3d {
-                title: "Look point"
-                value: lookPoint
+            Row {
+                height: 15
+                anchors {
+                    left: col.left
+                    right: col.right
+                }
+
+                Vector3d {
+                    title: "Eye point"
+                    value: eyePoint
+                }
+
+                Vector3d {
+                    title: "Look point"
+                    value: lookPoint
+                }
+
+                Vector3d {
+                    title: "Up"
+                    value: up
+                }
+
+                Vector3d {
+                    title: "Distance image plane"
+                    value: distanceImagePlane
+                }
             }
 
-            Vector3d {
-                title: "Up"
-                value: up
+            Row {
+                height: 15
+                anchors {
+                    left: col.left
+                    right: col.right
+                }
+                Vector3d {
+                                        title: "Field of view"
+                                        value: fov
+                                    }
+                Instantiator {
+                    model: 1
+
+                    delegate: Vector3d {
+                        title: "Field of view"
+                        value: fov
+                    }
+                }
             }
         }
     }
