@@ -10,7 +10,7 @@
 
 static QString vecToStr(Vector3d vec) {
     std::ostringstream oss;
-    oss << vec.transpose();
+    oss << "(" << vec.transpose()[0] << "," << vec.transpose()[1] << "," << vec.transpose()[2] << ")";
     return QString(oss.str().c_str());
 }
 
@@ -129,12 +129,21 @@ public:
         DistImgPlaneRole = Qt::UserRole + 6,
         FovRole = Qt::UserRole + 7,
         AspectRatioRole = Qt::UserRole + 8,
+        LeftRole = Qt::UserRole + 9,
+        RightRole = Qt::UserRole + 10,
+        TopRole = Qt::UserRole + 11,
+        BottomRole = Qt::UserRole + 12,
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const { return m_cameras.count(); }
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const {
+        // Sanity checks
+        if(!index.isValid()) return QVariant();
+        if(index.row() >= m_cameras.count()) return QVariant();
+
         SCamera* cam = m_cameras[index.row()];
+        double ar = static_cast<SBasicCamera*>(cam)->aspectRatio;
         if (role == NameRole) return QVariant(QString(cam->name.c_str()));
         else if(role == EyePointRole) return QVariant(vecToStr(cam->eyePoint));
         else if(role == LookPointRole) return QVariant(vecToStr(cam->lookPoint));
@@ -142,14 +151,20 @@ public:
         else if(role == TypeRole) return QVariant(cam->type == 0 ? "basic" : "advanced");
         else if(role == DistImgPlaneRole) return QVariant(cam->distanceImagePlane);
         else if(role == FovRole) return QVariant(static_cast<SBasicCamera*>(cam)->fov);
-        else if(role == AspectRatioRole) return QVariant(static_cast<SBasicCamera*>(cam)->aspectRatio);
+        else if(role == AspectRatioRole) return ar;
+        else if(role == LeftRole) return QVariant(static_cast<SAdvancedCamera*>(cam)->left);
+        else if(role == RightRole) return static_cast<SAdvancedCamera*>(cam)->right;
+        else if(role == TopRole) return static_cast<SAdvancedCamera*>(cam)->top;
+        else if(role == BottomRole) return static_cast<SAdvancedCamera*>(cam)->bottom;
 
+        // Something went wrong
         return QVariant();
     }
 
     void AddCamera(SCamera& c) {
         emit beginInsertRows(createIndex(m_cameras.count(), 0), m_cameras.count(), m_cameras.count());
-        m_cameras.append(new SCamera(c));
+        if(c.type == SCamera::BASIC) m_cameras.append(new SBasicCamera(*static_cast<SBasicCamera*>(&c)));
+        else if(c.type == SCamera::ADVANCED) m_cameras.append(new SAdvancedCamera(*static_cast<SAdvancedCamera*>(&c)));
         emit endInsertRows();
     }
 protected:
@@ -163,6 +178,10 @@ protected:
         roles[DistImgPlaneRole] = "distanceImagePlane";
         roles[FovRole] = "fov";
         roles[AspectRatioRole] = "aspectRatio";
+        roles[LeftRole] = "left";
+        roles[RightRole] = "right";
+        roles[TopRole] = "top";
+        roles[BottomRole] = "bottom";
 
          return roles;
     }

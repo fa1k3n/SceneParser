@@ -15,6 +15,19 @@
         DISTANCE_IMAGE_PLANE    5
     }
 
+Camera
+{
+    Type                    advanced
+    Name                    second_camera
+    Eye_Point               0 0 40
+    Look_Point              0 0 0
+    Up                      0 1 0
+
+    left 2.1
+    top 0.5
+    DISTANCE_IMAGE_PLANE    5
+}
+
 // lights
     Light
     {

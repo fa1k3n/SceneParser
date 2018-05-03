@@ -3,7 +3,7 @@
         <file>main.qml</file>
         <file>Camera.qml</file>
         <file>Light.qml</file>
-        <file>Vector3d.qml</file>
+        <file>PropertyLabel.qml</file>
         <file>GroupView.qml</file>
         <file>resources/images/camera.png</file>
         <file>resources/images/down.png</file>
