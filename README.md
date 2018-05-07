@@ -13,8 +13,8 @@ A library for parsing 3d scene files, format according to [spec](http://research
 
 # Building
 
-'''
+```
 mkdir build && cd build
 cmake -DCMAKE_PREFIX_PATH=<PATH TO QT> ..
-'''
+```
 
