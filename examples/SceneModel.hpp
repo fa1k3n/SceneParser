@@ -21,14 +21,29 @@ class MaterialsModel : public QAbstractListModel {
     virtual ~MaterialsModel() {}
 
     enum MaterialsRoles {
-        NameRole = Qt::UserRole + 1
+        TypeRole = Qt::UserRole + 1,
+        NameRole = Qt::UserRole + 2,
+        EmissionRole = Qt::UserRole + 3,
+        AmbientRole = Qt::UserRole + 4,
+        DiffuseRole = Qt::UserRole + 5,
+        SpecularRole = Qt::UserRole + 6,
+        SpecularPowerRole = Qt::UserRole + 7,
+        TextureRole = Qt::UserRole + 8,
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const { return m_materials.count(); }
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const {
         SMaterial* mat = m_materials[index.row()];
-        if (role == NameRole) return QVariant::fromValue(QString(mat->name.c_str()));
+        if (role == TypeRole) return mat->type == SMaterial::BASIC ? QString("basic") : QString("unknown");
+        else if (role == NameRole) return QVariant::fromValue(QString(mat->name.c_str()));
+        else if(role == EmissionRole) return QVariant(vecToStr(mat->emission));
+        else if(role == AmbientRole) return QVariant(vecToStr(mat->ambient));
+        else if(role == DiffuseRole) return QVariant(vecToStr(mat->diffuse));
+        else if(role == SpecularRole) return QVariant(vecToStr(mat->specular));
+        else if(role == SpecularPowerRole) return mat->specularPower;
+        else if(role == TextureRole) return QVariant(mat->texture.c_str());
+
         return QVariant();
     }
 
@@ -40,8 +55,15 @@ class MaterialsModel : public QAbstractListModel {
 protected:
     QHash<int, QByteArray> roleNames() const {
         QHash<int, QByteArray> roles;
+        roles[TypeRole] = "type";
         roles[NameRole] = "name";
-         return roles;
+        roles[EmissionRole] = "emission";
+        roles[AmbientRole] = "ambient";
+        roles[DiffuseRole] = "diffuse";
+        roles[SpecularRole] = "specular";
+        roles[SpecularPowerRole] = "specularPower";
+        roles[TextureRole] = "texture";
+        return roles;
     }
 private:
     QList<SMaterial*> m_materials;
@@ -54,7 +76,10 @@ class GeometryModel : public QAbstractListModel {
     virtual ~GeometryModel() {}
 
     enum GeometryRoles {
-        NameRole = Qt::UserRole + 1
+        NameRole = Qt::UserRole + 1,
+        TypeRole = Qt::UserRole + 2,
+        VerticesRole = Qt::UserRole + 3,
+        TriRole = Qt::UserRole + 4
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const { return m_geometries.count(); }
@@ -62,18 +87,43 @@ class GeometryModel : public QAbstractListModel {
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const {
         SGeometry* geom = m_geometries[index.row()];
         if (role == NameRole) return QVariant::fromValue(QString(geom->name.c_str()));
+        else if (role == TypeRole) return geom->type == SGeometry::MESH ? QVariant("mesh") : QVariant("sphere");
+        else if (role == VerticesRole) {
+            //QString ret;
+            QStringList ret;
+            //SMesh* mesh = static_cast<SMesh*>(geom);
+            for (auto vert : static_cast<SMesh*>(geom)->vertices) {
+                //ret.push_back(QString(vecToStr(vert.n)) + QString(vecToStr(vert.p)) + QString(vecToStr(vert.tc)));
+                ret.append(QString(vecToStr(vert.n)) + QString(vecToStr(vert.p)) + QString(vecToStr(vert.tc)));
+            }
+            return ret;
+        }
+        else if (role == TriRole) {
+            QString ret;
+            //for (auto tri : static_cast<SMesh*>(geom)->tri) {
+            //    ret.push_back(QString(std::string(std::begin(tri), std::end(tri)).c_str()));
+            //}
+            ret.append("World");
+            return ret;
+        }
         return QVariant();
     }
 
     void AddGeometry(SGeometry& g) {
         emit beginInsertRows(createIndex(m_geometries.count(), 0), m_geometries.count(), m_geometries.count());
-        m_geometries.append(new SGeometry(g));
+        if (g.type == SGeometry::SPHERE) m_geometries.append(new SSphere(*static_cast<SSphere*>(&g)));
+        else if (g.type == SGeometry::MESH) m_geometries.append(new SMesh(*static_cast<SMesh*>(&g)));
+
         emit endInsertRows();
     }
 protected:
     QHash<int, QByteArray> roleNames() const {
         QHash<int, QByteArray> roles;
         roles[NameRole] = "name";
+        roles[TypeRole] = "type";
+        roles[VerticesRole] = "vertices";
+        roles[TriRole] = "tri";
+
          return roles;
     }
 private:
@@ -87,7 +137,14 @@ public:
     virtual ~LightsModel() {}
 
     enum LightRoles {
-        NameRole = Qt::UserRole + 1
+        NameRole = Qt::UserRole + 1,
+        TypeRole = Qt::UserRole + 2,
+        AmbientRole = Qt::UserRole + 3,
+        DiffuseRole = Qt::UserRole + 4,
+        SpecularRole = Qt::UserRole + 5,
+        PositionRole = Qt::UserRole + 6,
+        AttenuationCoeffsRole = Qt::UserRole + 7,
+        DirectionRole = Qt::UserRole + 8,
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const { return m_lights.count(); }
@@ -95,19 +152,34 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const {
         SLight* light = m_lights[index.row()];
         if (role == NameRole) return QVariant::fromValue(QString(light->name.c_str()));
+        else if (role == TypeRole) return light->type == SLight::DIRECTIONAL ? QVariant("directional") : QVariant("point");
+        else if (role == AmbientRole) return QVariant(vecToStr(light->ambient));
+        else if (role == DiffuseRole) return QVariant(vecToStr(light->diffuse));
+        else if (role == SpecularRole) return QVariant(vecToStr(light->specular));
+        else if (role == PositionRole) return QVariant(vecToStr(static_cast<SPointLight*>(light)->position));
+        else if (role == AttenuationCoeffsRole) return QVariant(vecToStr(static_cast<SPointLight*>(light)->attenuationCoefs));
+        else if (role == DirectionRole) return QVariant(vecToStr(static_cast<SDirectionalLight*>(light)->direction));
         return QVariant();
     }
 
     void AddLight(SLight& l) {
         emit beginInsertRows(createIndex(m_lights.count(), 0), m_lights.count(), m_lights.count());
-        m_lights.append(new SLight(l));
+        if(l.type == SLight::POINT) m_lights.append(new SPointLight(*static_cast<SPointLight*>(&l)));
+        else if(l.type == SLight::DIRECTIONAL) m_lights.append(new SDirectionalLight(*static_cast<SDirectionalLight*>(&l)));
         emit endInsertRows();
     }
 protected:
     QHash<int, QByteArray> roleNames() const {
         QHash<int, QByteArray> roles;
         roles[NameRole] = "name";
-         return roles;
+        roles[TypeRole] = "type";
+        roles[AmbientRole] = "ambient";
+        roles[DiffuseRole] = "diffuse";
+        roles[SpecularRole] = "specular";
+        roles[PositionRole] = "position";
+        roles[AttenuationCoeffsRole] = "attenuationCoeffs";
+        roles[DirectionRole] = "direction";
+        return roles;
     }
 private:
     QList<SLight*> m_lights;
@@ -143,7 +215,7 @@ public:
         if(index.row() >= m_cameras.count()) return QVariant();
 
         SCamera* cam = m_cameras[index.row()];
-        double ar = static_cast<SBasicCamera*>(cam)->aspectRatio;
+        double ar = (double)static_cast<SBasicCamera*>(cam)->aspectRatio;
         if (role == NameRole) return QVariant(QString(cam->name.c_str()));
         else if(role == EyePointRole) return QVariant(vecToStr(cam->eyePoint));
         else if(role == LookPointRole) return QVariant(vecToStr(cam->lookPoint));
@@ -151,7 +223,7 @@ public:
         else if(role == TypeRole) return QVariant(cam->type == 0 ? "basic" : "advanced");
         else if(role == DistImgPlaneRole) return QVariant(cam->distanceImagePlane);
         else if(role == FovRole) return QVariant(static_cast<SBasicCamera*>(cam)->fov);
-        else if(role == AspectRatioRole) return ar;
+        else if(role == AspectRatioRole) return QVariant::fromValue(ar);
         else if(role == LeftRole) return QVariant(static_cast<SAdvancedCamera*>(cam)->left);
         else if(role == RightRole) return static_cast<SAdvancedCamera*>(cam)->right;
         else if(role == TopRole) return static_cast<SAdvancedCamera*>(cam)->top;

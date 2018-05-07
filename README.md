@@ -3,4 +3,18 @@
 
 # SceneParser
 
-A library for parsing 3d scene files
+A library for parsing 3d scene files, format according to [spec](http://research.cs.wisc.edu/graphics/Courses/779-s2003/assignments/assignment1/scenefile.html)
+
+# Dependencies
+
+* Eigen 3
+* Qt for the example
+* Googletest for unittests
+
+# Building
+
+'''
+mkdir build && cd build
+cmake -DCMAKE_PREFIX_PATH=<PATH TO QT> ..
+'''
+
